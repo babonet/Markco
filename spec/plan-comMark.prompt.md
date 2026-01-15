@@ -35,8 +35,11 @@ Create a VS Code extension that enables inline commenting in Markdown files with
    - `parseComments(document)` - Extract JSON from `<!-- commark-comments ... -->` block
    - `saveComments(document, comments)` - Serialize and write JSON block to end of file
    - `addComment(document, selection, content)` - Create new comment with anchor
-   - `deleteComment(document, commentId)` - Remove comment by ID
+   - `deleteComment(document, commentId)` - Remove comment by ID (cascade deletes replies)
    - `updateComment(document, commentId, content)` - Edit comment text
+   - `addReply(document, commentId, content)` - Add a reply to an existing comment
+   - `deleteReply(document, commentId, replyId)` - Remove a reply from a comment
+   - `updateReply(document, commentId, replyId, content)` - Edit reply text
    - `reconcileAnchors(document)` - Re-match anchors after document edits
 
 3. **Create CommentDecorator** in [src/decorators/CommentDecorator.ts](src/decorators/CommentDecorator.ts):
@@ -48,7 +51,8 @@ Create a VS Code extension that enables inline commenting in Markdown files with
 4. **Create CommentSidebarProvider** in [src/providers/CommentSidebarProvider.ts](src/providers/CommentSidebarProvider.ts):
    - Implements `WebviewViewProvider` for sidebar panel
    - Renders comment list with HTML/CSS (no React needed for MVP)
-   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`
+   - Renders nested replies under each comment
+   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`, `requestReply`, `deleteReply`, `requestEditReply`
    - `refresh()` method to update view when comments change
 
 5. **Implement two-way navigation**:
@@ -68,19 +72,28 @@ Comments are stored as a JSON block at the end of the Markdown file, wrapped in 
 ```markdown
 <!-- commark-comments
 {
-  "version": 1,
+  "version": 2,
   "comments": [
     {
       "id": "uuid-string",
       "anchor": {
         "text": "highlighted text snippet",
-        "line": 10,
-        "start": 5,
-        "end": 28
+        "startLine": 10,
+        "startChar": 5,
+        "endLine": 10,
+        "endChar": 28
       },
       "content": "The actual comment text",
       "author": "username",
-      "timestamp": "2026-01-15T10:30:00Z"
+      "createdAt": "2026-01-15T10:30:00Z",
+      "replies": [
+        {
+          "id": "reply-uuid",
+          "content": "Reply text here",
+          "author": "reviewer",
+          "createdAt": "2026-01-15T11:00:00Z"
+        }
+      ]
     }
   ]
 }

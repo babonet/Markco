@@ -15,6 +15,22 @@ export interface CommentAnchor {
 }
 
 /**
+ * Represents a reply to a comment
+ */
+export interface Reply {
+  /** Unique identifier */
+  id: string;
+  /** The reply content/text */
+  content: string;
+  /** Author of the reply */
+  author: string;
+  /** ISO 8601 timestamp */
+  createdAt: string;
+  /** ISO 8601 timestamp of last update */
+  updatedAt?: string;
+}
+
+/**
  * Represents a single comment
  */
 export interface Comment {
@@ -30,6 +46,8 @@ export interface Comment {
   createdAt: string;
   /** ISO 8601 timestamp of last update */
   updatedAt?: string;
+  /** Replies to this comment */
+  replies?: Reply[];
 }
 
 /**
@@ -52,6 +70,9 @@ export type SidebarMessage =
   | { type: 'deleteComment'; commentId: string }
   | { type: 'editComment'; commentId: string; content: string }
   | { type: 'requestEdit'; commentId: string }
+  | { type: 'requestReply'; commentId: string }
+  | { type: 'deleteReply'; commentId: string; replyId: string }
+  | { type: 'requestEditReply'; commentId: string; replyId: string }
   | { type: 'commentDeleted'; commentId: string }
   | { type: 'commentUpdated'; comment: Comment }
   | { type: 'ready' };

@@ -1,0 +1,24 @@
+# Build output
+out/
+
+# Dependencies
+node_modules/
+
+# Packaged extension
+*.vsix
+
+# TypeScript cache
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Logs
+*.log
+npm-debug.log*

@@ -160,6 +160,77 @@ kbd {
   background: var(--vscode-inputValidation-errorBackground) !important;
 }
 
+/* Reply styles */
+.replies-container {
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid var(--vscode-textLink-foreground);
+}
+
+.reply-item {
+  background: var(--vscode-editor-background);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.reply-item:last-child {
+  margin-bottom: 0;
+}
+
+.reply-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+.reply-author {
+  font-weight: 600;
+  color: var(--vscode-textLink-foreground);
+}
+
+.reply-date {
+  color: var(--vscode-descriptionForeground);
+}
+
+.reply-content {
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  word-wrap: break-word;
+}
+
+.reply-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.reply-actions button {
+  background: transparent;
+  border: 1px solid var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.reply-actions button:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-delete-reply {
+  color: var(--vscode-errorForeground) !important;
+  border-color: var(--vscode-errorForeground) !important;
+}
+
+.btn-delete-reply:hover {
+  background: var(--vscode-inputValidation-errorBackground) !important;
+}
+
 /* Scrollbar styling */
 .comments-list::-webkit-scrollbar {
   width: 8px;

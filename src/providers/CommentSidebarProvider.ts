@@ -16,7 +16,10 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     private readonly _onDelete: (commentId: string) => void,
     private readonly _onEdit: (commentId: string, content: string) => void,
     private readonly _onReady?: () => void,
-    private readonly _onRequestEdit?: (commentId: string) => void
+    private readonly _onRequestEdit?: (commentId: string) => void,
+    private readonly _onRequestReply?: (commentId: string) => void,
+    private readonly _onDeleteReply?: (commentId: string, replyId: string) => void,
+    private readonly _onRequestEditReply?: (commentId: string, replyId: string) => void
   ) {}
 
   public resolveWebviewView(
@@ -48,6 +51,21 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
         case 'requestEdit':
           if (this._onRequestEdit) {
             this._onRequestEdit(message.commentId);
+          }
+          break;
+        case 'requestReply':
+          if (this._onRequestReply) {
+            this._onRequestReply(message.commentId);
+          }
+          break;
+        case 'deleteReply':
+          if (this._onDeleteReply) {
+            this._onDeleteReply(message.commentId, message.replyId);
+          }
+          break;
+        case 'requestEditReply':
+          if (this._onRequestEditReply) {
+            this._onRequestEditReply(message.commentId, message.replyId);
           }
           break;
         case 'ready':
@@ -149,9 +167,11 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
           <div class="comment-content">\${escapeHtml(comment.content)}</div>
           <div class="comment-anchor">On: "\${escapeHtml(truncate(comment.anchor.text, 40))}"</div>
           <div class="comment-actions">
+            <button class="btn-reply" onclick="event.stopPropagation(); startReply('\${comment.id}')">Reply</button>
             <button class="btn-edit" onclick="event.stopPropagation(); startEdit('\${comment.id}')">Edit</button>
             <button class="btn-delete" onclick="event.stopPropagation(); deleteComment('\${comment.id}')">Delete</button>
           </div>
+          \${renderReplies(comment)}
         </div>
       \`).join('');
     }
@@ -167,6 +187,42 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     function startEdit(id) {
       // Send request to extension to show input box (prompt doesn't work in webviews)
       vscode.postMessage({ type: 'requestEdit', commentId: id });
+    }
+
+    function startReply(commentId) {
+      // Send request to extension to show input box for reply
+      vscode.postMessage({ type: 'requestReply', commentId: commentId });
+    }
+
+    function deleteReply(commentId, replyId) {
+      vscode.postMessage({ type: 'deleteReply', commentId: commentId, replyId: replyId });
+    }
+
+    function startEditReply(commentId, replyId) {
+      vscode.postMessage({ type: 'requestEditReply', commentId: commentId, replyId: replyId });
+    }
+
+    function renderReplies(comment) {
+      if (!comment.replies || comment.replies.length === 0) {
+        return '';
+      }
+      return \`
+        <div class="replies-container" onclick="event.stopPropagation()">
+          \${comment.replies.map(reply => \`
+            <div class="reply-item" data-reply-id="\${reply.id}">
+              <div class="reply-header">
+                <span class="reply-author">\${escapeHtml(reply.author)}</span>
+                <span class="reply-date">\${formatDate(reply.createdAt)}</span>
+              </div>
+              <div class="reply-content">\${escapeHtml(reply.content)}</div>
+              <div class="reply-actions">
+                <button class="btn-edit-reply" onclick="startEditReply('\${comment.id}', '\${reply.id}')">Edit</button>
+                <button class="btn-delete-reply" onclick="deleteReply('\${comment.id}', '\${reply.id}')">Delete</button>
+              </div>
+            </div>
+          \`).join('')}
+        </div>
+      \`;
     }
 
     function focusComment(id) {

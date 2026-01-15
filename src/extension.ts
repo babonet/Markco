@@ -80,6 +80,68 @@ export function activate(context: vscode.ExtensionContext) {
         refreshAll(editor);
         vscode.window.showInformationMessage('Comment updated');
       }
+    },
+    // Request reply callback - show VS Code input box for adding a reply
+    async (commentId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      const replyContent = await vscode.window.showInputBox({
+        prompt: 'Enter your reply',
+        placeHolder: 'Type your reply here...',
+        validateInput: (value) => {
+          return value.trim() ? null : 'Reply cannot be empty';
+        }
+      });
+
+      if (replyContent) {
+        const reply = await commentService.addReply(editor.document, commentId, replyContent.trim());
+        if (reply) {
+          refreshAll(editor);
+          vscode.window.showInformationMessage('Reply added');
+        }
+      }
+    },
+    // Delete reply callback
+    async (commentId: string, replyId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      const success = await commentService.deleteReply(editor.document, commentId, replyId);
+      if (success) {
+        refreshAll(editor);
+        vscode.window.showInformationMessage('Reply deleted');
+      }
+    },
+    // Request edit reply callback - show VS Code input box for editing a reply
+    async (commentId: string, replyId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      const reply = commentService.findReply(editor.document, commentId, replyId);
+      if (!reply) {
+        return;
+      }
+
+      const newContent = await vscode.window.showInputBox({
+        prompt: 'Edit your reply',
+        value: reply.content,
+        validateInput: (value) => {
+          return value.trim() ? null : 'Reply cannot be empty';
+        }
+      });
+
+      if (newContent && newContent.trim() !== reply.content) {
+        await commentService.updateReply(editor.document, commentId, replyId, newContent.trim());
+        refreshAll(editor);
+        vscode.window.showInformationMessage('Reply updated');
+      }
     }
   );
 

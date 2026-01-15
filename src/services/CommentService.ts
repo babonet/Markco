@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { Comment, CommentAnchor, CommentData } from '../types';
+import { Comment, CommentAnchor, CommentData, Reply } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 const COMMENT_BLOCK_START = '<!-- commark-comments';
 const COMMENT_BLOCK_END = '-->';
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 /**
  * Check if a position in text is inside a code fence (``` blocks)
@@ -216,6 +216,104 @@ export class CommentService {
   findComment(document: vscode.TextDocument, commentId: string): Comment | undefined {
     const comments = this.getComments(document);
     return comments.find(c => c.id === commentId);
+  }
+
+  /**
+   * Add a reply to a comment
+   */
+  async addReply(
+    document: vscode.TextDocument,
+    commentId: string,
+    content: string
+  ): Promise<Reply | null> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment) {
+      return null;
+    }
+
+    const reply: Reply = {
+      id: uuidv4(),
+      content,
+      author: 'user',
+      createdAt: new Date().toISOString()
+    };
+
+    if (!comment.replies) {
+      comment.replies = [];
+    }
+    comment.replies.push(reply);
+
+    const success = await this.saveComments(document, comments);
+    return success ? reply : null;
+  }
+
+  /**
+   * Delete a reply from a comment (cascade: deleting parent comment deletes all replies)
+   */
+  async deleteReply(
+    document: vscode.TextDocument,
+    commentId: string,
+    replyId: string
+  ): Promise<boolean> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment || !comment.replies) {
+      return false;
+    }
+
+    const replyIndex = comment.replies.findIndex(r => r.id === replyId);
+    if (replyIndex === -1) {
+      return false;
+    }
+
+    comment.replies.splice(replyIndex, 1);
+    return this.saveComments(document, comments);
+  }
+
+  /**
+   * Update a reply's content
+   */
+  async updateReply(
+    document: vscode.TextDocument,
+    commentId: string,
+    replyId: string,
+    newContent: string
+  ): Promise<Reply | null> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment || !comment.replies) {
+      return null;
+    }
+
+    const reply = comment.replies.find(r => r.id === replyId);
+    if (!reply) {
+      return null;
+    }
+
+    reply.content = newContent;
+    reply.updatedAt = new Date().toISOString();
+
+    const success = await this.saveComments(document, comments);
+    return success ? reply : null;
+  }
+
+  /**
+   * Find a reply by ID within a comment
+   */
+  findReply(
+    document: vscode.TextDocument,
+    commentId: string,
+    replyId: string
+  ): Reply | undefined {
+    const comment = this.findComment(document, commentId);
+    if (!comment || !comment.replies) {
+      return undefined;
+    }
+    return comment.replies.find(r => r.id === replyId);
   }
 
   /**
