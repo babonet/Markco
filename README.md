@@ -2,6 +2,8 @@
 
 Interactive commenting system for Markdown files in VS Code.
 
+![Markco Demo](media/markco.gif)
+
 ## Features
 
 - **Inline Comments** - Add comments to any selected text in Markdown files
@@ -56,3 +58,11 @@ Comments are stored directly in the Markdown file as a JSON block in an HTML com
 ```
 
 This keeps comments portable and version-control friendly.
+
+
+<!-- markco-comments
+{
+  "version": 2,
+  "comments": []
+}
+-->
