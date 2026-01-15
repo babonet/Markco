@@ -3,7 +3,15 @@
   "displayName": "Markco - Markdown Comments",
   "description": "Interactive commenting system for Markdown files with inline highlights and sidebar navigation",
   "version": "0.1.0",
-  "publisher": "markco",
+  "publisher": "OrenMaoz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ormaoz_microsoft/Markco.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ormaoz_microsoft/Markco/issues"
+  },
+  "homepage": "https://github.com/ormaoz_microsoft/Markco#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
