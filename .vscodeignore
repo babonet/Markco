@@ -1,0 +1,19 @@
+# Source files (compiled output is in out/)
+src/**
+spec/**
+
+# Config files
+tsconfig.json
+.vscode/**
+
+# Development files
+.gitignore
+.git/**
+
+# Package files
+node_modules/**
+!node_modules/uuid/**
+
+# Other
+*.vsix
+**/*.map
