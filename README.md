@@ -2,7 +2,7 @@
 
 Interactive commenting system for Markdown files in VS Code.
 
-![Markco Demo](media/markco.gif)
+[Markco Demo](https://1drv.ms/i/c/d0e12df6da9420b1/IQBBxB5JJK2bSp2OzMklgBkgASCI3vBIyxGyWRzw0x1SyVA?e=UfecfJ)
 
 ## Features
 

@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import { Comment, CommentAnchor, CommentData, Reply } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 const COMMENT_BLOCK_START = '<!-- markco-comments';
 const COMMENT_BLOCK_END = '-->';
@@ -45,6 +49,31 @@ function findCommentBlockStart(text: string): number {
  */
 export class CommentService {
   private commentCache: Map<string, Comment[]> = new Map();
+
+  /**
+   * Get the Git username from git config, with fallback to 'user'
+   */
+  private async getGitUserName(document: vscode.TextDocument): Promise<string> {
+    try {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+      const cwd = workspaceFolder?.uri.fsPath ?? require('path').dirname(document.uri.fsPath);
+      console.log('Markco: Getting git user.name from cwd:', cwd);
+      const { stdout, stderr } = await execAsync('git config user.name', { cwd });
+      if (stderr) {
+        console.log('Markco: git config stderr:', stderr);
+      }
+      const name = stdout.trim();
+      console.log('Markco: git config user.name result:', name || '(empty)');
+      if (!name) {
+        console.log('Markco: Git user.name is empty, falling back to "user"');
+        return 'user';
+      }
+      return name;
+    } catch (error) {
+      console.error('Markco: Failed to get git user.name:', error);
+      return 'user';
+    }
+  }
 
   /**
    * Parse comments from a markdown document
@@ -158,11 +187,13 @@ export class CommentService {
       endChar: selection.end.character
     };
 
+    const author = await this.getGitUserName(document);
+
     const comment: Comment = {
       id: uuidv4(),
       anchor,
       content,
-      author: 'user', // Could be extended to get from settings
+      author,
       createdAt: new Date().toISOString()
     };
 
@@ -233,10 +264,12 @@ export class CommentService {
       return null;
     }
 
+    const author = await this.getGitUserName(document);
+
     const reply: Reply = {
       id: uuidv4(),
       content,
-      author: 'user',
+      author,
       createdAt: new Date().toISOString()
     };
 
