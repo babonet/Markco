@@ -350,6 +350,27 @@ export class CommentService {
   }
 
   /**
+   * Toggle the resolved status of a comment
+   */
+  async resolveComment(
+    document: vscode.TextDocument,
+    commentId: string
+  ): Promise<Comment | null> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment) {
+      return null;
+    }
+
+    comment.resolved = !comment.resolved;
+    comment.updatedAt = new Date().toISOString();
+
+    const success = await this.saveComments(document, comments);
+    return success ? comment : null;
+  }
+
+  /**
    * Reconcile comment anchors after document changes
    * Attempts to re-locate anchors by finding the anchor text near its expected position
    */

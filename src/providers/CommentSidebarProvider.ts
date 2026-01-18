@@ -19,7 +19,8 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     private readonly _onRequestEdit?: (commentId: string) => void,
     private readonly _onRequestReply?: (commentId: string) => void,
     private readonly _onDeleteReply?: (commentId: string, replyId: string) => void,
-    private readonly _onRequestEditReply?: (commentId: string, replyId: string) => void
+    private readonly _onRequestEditReply?: (commentId: string, replyId: string) => void,
+    private readonly _onResolve?: (commentId: string) => void
   ) {}
 
   public resolveWebviewView(
@@ -66,6 +67,11 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
         case 'requestEditReply':
           if (this._onRequestEditReply) {
             this._onRequestEditReply(message.commentId, message.replyId);
+          }
+          break;
+        case 'resolveComment':
+          if (this._onResolve) {
+            this._onResolve(message.commentId);
           }
           break;
         case 'ready':
@@ -133,6 +139,9 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
   <div id="app">
     <div class="header">
       <h3>Comments <span id="comment-count">(0)</span></h3>
+      <button id="toggle-resolved" class="btn-toggle" title="Toggle resolved comments">
+        <i class="codicon codicon-eye"></i>
+      </button>
     </div>
     <div id="comments-list" class="comments-list">
       <div class="no-comments">
@@ -146,24 +155,43 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     const vscode = acquireVsCodeApi();
     let comments = [];
     let editingId = null;
+    let showResolved = true;
+
+    function toggleResolved() {
+      showResolved = !showResolved;
+      const toggleBtn = document.getElementById('toggle-resolved');
+      const icon = toggleBtn.querySelector('i');
+      if (showResolved) {
+        icon.className = 'codicon codicon-eye';
+        toggleBtn.title = 'Hide resolved comments';
+        toggleBtn.classList.remove('hidden-resolved');
+      } else {
+        icon.className = 'codicon codicon-eye-closed';
+        toggleBtn.title = 'Show resolved comments';
+        toggleBtn.classList.add('hidden-resolved');
+      }
+      renderComments();
+    }
 
     function renderComments() {
       const container = document.getElementById('comments-list');
       const countEl = document.getElementById('comment-count');
-      countEl.textContent = '(' + comments.length + ')';
+      const filteredComments = showResolved ? comments : comments.filter(c => !c.resolved);
+      const resolvedCount = comments.filter(c => c.resolved).length;
+      countEl.textContent = '(' + filteredComments.length + (resolvedCount > 0 && !showResolved ? ' / ' + comments.length : '') + ')';
 
-      if (comments.length === 0) {
+      if (filteredComments.length === 0) {
         container.innerHTML = \`
           <div class="no-comments">
-            <p>No comments yet.</p>
-            <p class="help-text">Select text and press <kbd>Ctrl+Shift+M</kbd> to add a comment.</p>
+            <p>\${comments.length === 0 ? 'No comments yet.' : 'No unresolved comments.'}</p>
+            <p class="help-text">\${comments.length === 0 ? 'Select text and press <kbd>Ctrl+Shift+M</kbd> to add a comment.' : 'Click the eye icon to show resolved comments.'}</p>
           </div>
         \`;
         return;
       }
 
-      container.innerHTML = comments.map(comment => \`
-        <div class="comment-item" data-id="\${comment.id}" onclick="navigateToComment('\${comment.id}')">
+      container.innerHTML = filteredComments.map(comment => \`
+        <div class="comment-item \${comment.resolved ? 'resolved' : ''}" data-id="\${comment.id}" onclick="navigateToComment('\${comment.id}')">
           <div class="comment-header">
             <span class="comment-author">\${escapeHtml(comment.author)}</span>
             <span class="comment-date">\${formatDate(comment.createdAt)}</span>
@@ -171,9 +199,14 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
           <div class="comment-content">\${escapeHtml(comment.content)}</div>
           <div class="comment-anchor">On: "\${escapeHtml(truncate(comment.anchor.text, 40))}"</div>
           <div class="comment-actions">
-            <button class="btn-icon btn-reply" onclick="event.stopPropagation(); startReply('\${comment.id}')" title="Reply"><i class="codicon codicon-comment"></i></button>
-            <button class="btn-icon btn-edit" onclick="event.stopPropagation(); startEdit('\${comment.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>
-            <button class="btn-icon btn-delete" onclick="event.stopPropagation(); deleteComment('\${comment.id}')" title="Delete"><i class="codicon codicon-trash"></i></button>
+            <div class="actions-left">
+              <button class="btn-icon btn-reply" onclick="event.stopPropagation(); startReply('\${comment.id}')" title="Reply"><i class="codicon codicon-comment"></i></button>
+              <button class="btn-icon btn-edit" onclick="event.stopPropagation(); startEdit('\${comment.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>
+            </div>
+            <div class="actions-right">
+              <button class="btn-icon btn-resolve \${comment.resolved ? 'resolved' : ''}" onclick="event.stopPropagation(); resolveComment('\${comment.id}')" title="\${comment.resolved ? 'Reopen' : 'Resolve'}"><i class="codicon codicon-\${comment.resolved ? 'issue-reopened' : 'check'}"></i></button>
+              <button class="btn-icon btn-delete" onclick="event.stopPropagation(); deleteComment('\${comment.id}')" title="Delete"><i class="codicon codicon-trash"></i></button>
+            </div>
           </div>
           \${renderReplies(comment)}
         </div>
@@ -186,6 +219,10 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
 
     function deleteComment(id) {
       vscode.postMessage({ type: 'deleteComment', commentId: id });
+    }
+
+    function resolveComment(id) {
+      vscode.postMessage({ type: 'resolveComment', commentId: id });
     }
 
     function startEdit(id) {
@@ -271,6 +308,9 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
 
     // Initial render
     renderComments();
+    
+    // Setup toggle button
+    document.getElementById('toggle-resolved').addEventListener('click', toggleResolved);
     
     // Tell extension we're ready to receive data
     vscode.postMessage({ type: 'ready' });

@@ -46,6 +46,8 @@ export interface Comment {
   createdAt: string;
   /** ISO 8601 timestamp of last update */
   updatedAt?: string;
+  /** Whether the comment is resolved */
+  resolved?: boolean;
   /** Replies to this comment */
   replies?: Reply[];
 }
@@ -68,6 +70,7 @@ export type SidebarMessage =
   | { type: 'focusComment'; commentId: string }
   | { type: 'navigateToComment'; commentId: string }
   | { type: 'deleteComment'; commentId: string }
+  | { type: 'resolveComment'; commentId: string }
   | { type: 'editComment'; commentId: string; content: string }
   | { type: 'requestEdit'; commentId: string }
   | { type: 'requestReply'; commentId: string }

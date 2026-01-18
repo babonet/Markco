@@ -10,8 +10,9 @@ Interactive commenting system for Markdown files in VS Code.
 - **Comment Sidebar** - Dedicated panel showing all comments with navigation
 - **Two-Way Navigation** - Click comments to jump to text, or navigate from text to comments
 - **Highlight Decorations** - Visual highlighting of commented text
-- **Comment Management** - Edit, delete, and organize comments easily
+- **Comment Management** - Edit, delete, resolve, and organize comments easily
 - **Threaded Replies** - Reply to existing comments to create discussion threads
+- **Resolve Comments** - Mark comments as resolved without deleting them
 
 ## Usage
 
@@ -21,6 +22,8 @@ Interactive commenting system for Markdown files in VS Code.
 4. Enter your comment
 5. Use the sidebar to view and navigate between comments
 6. Click "Reply" on any comment to add a reply to that thread
+7. Click the checkmark icon to resolve a comment (resolved comments remain visible but dimmed)
+8. Use the eye icon toggle in the sidebar header to show/hide resolved comments
 
 ## Comment Storage
 
@@ -43,6 +46,7 @@ Comments are stored directly in the Markdown file as a JSON block in an HTML com
       "content": "Nice Header",
       "author": "user",
       "createdAt": "2026-01-15T11:47:50.061Z",
+      "resolved": false,
       "replies": [
         {
           "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",

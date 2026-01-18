@@ -48,6 +48,29 @@ body {
   letter-spacing: 0.5px;
 }
 
+.btn-toggle {
+  background: transparent;
+  border: none;
+  color: var(--vscode-button-secondaryForeground);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-toggle:hover {
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-toggle.hidden-resolved {
+  color: var(--vscode-descriptionForeground);
+  opacity: 0.7;
+}
+
 .comments-list {
   flex: 1;
   overflow-y: auto;
@@ -133,6 +156,13 @@ kbd {
 
 .comment-actions {
   display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.actions-left,
+.actions-right {
+  display: flex;
   gap: 4px;
 }
 
@@ -162,6 +192,27 @@ kbd {
 .btn-icon.btn-delete:hover,
 .btn-icon.btn-delete-reply:hover {
   background: var(--vscode-inputValidation-errorBackground);
+}
+
+.btn-icon.btn-resolve {
+  color: var(--vscode-charts-green);
+}
+
+.btn-icon.btn-resolve:hover {
+  background: rgba(0, 128, 0, 0.2);
+}
+
+.btn-icon.btn-resolve.resolved {
+  color: var(--vscode-textLink-foreground);
+}
+
+/* Resolved comment styles */
+.comment-item.resolved {
+  opacity: 0.6;
+}
+
+.comment-item.resolved .comment-content {
+  text-decoration: line-through;
 }
 
 /* Reply styles */

@@ -142,6 +142,20 @@ export function activate(context: vscode.ExtensionContext) {
         refreshAll(editor);
         vscode.window.showInformationMessage('Reply updated');
       }
+    },
+    // Resolve comment callback
+    async (commentId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      const comment = await commentService.resolveComment(editor.document, commentId);
+      if (comment) {
+        refreshAll(editor);
+        const action = comment.resolved ? 'resolved' : 'reopened';
+        vscode.window.showInformationMessage(`Comment ${action}`);
+      }
     }
   );
 

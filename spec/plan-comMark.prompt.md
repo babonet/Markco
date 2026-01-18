@@ -37,6 +37,7 @@ Create a VS Code extension that enables inline commenting in Markdown files with
    - `addComment(document, selection, content)` - Create new comment with anchor
    - `deleteComment(document, commentId)` - Remove comment by ID (cascade deletes replies)
    - `updateComment(document, commentId, content)` - Edit comment text
+   - `resolveComment(document, commentId)` - Toggle resolved status of a comment
    - `addReply(document, commentId, content)` - Add a reply to an existing comment
    - `deleteReply(document, commentId, replyId)` - Remove a reply from a comment
    - `updateReply(document, commentId, replyId, content)` - Edit reply text
@@ -52,7 +53,7 @@ Create a VS Code extension that enables inline commenting in Markdown files with
    - Implements `WebviewViewProvider` for sidebar panel
    - Renders comment list with HTML/CSS (no React needed for MVP)
    - Renders nested replies under each comment
-   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`, `requestReply`, `deleteReply`, `requestEditReply`
+   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`, `resolveComment`, `requestReply`, `deleteReply`, `requestEditReply`
    - `refresh()` method to update view when comments change
 
 5. **Implement two-way navigation**:
@@ -86,6 +87,7 @@ Comments are stored as a JSON block at the end of the Markdown file, wrapped in 
       "content": "The actual comment text",
       "author": "username",
       "createdAt": "2026-01-15T10:30:00Z",
+      "resolved": false,
       "replies": [
         {
           "id": "reply-uuid",
