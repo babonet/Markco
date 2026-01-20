@@ -69,7 +69,7 @@ export class CommentService {
   /**
    * Get the Git username from git config, with fallback to 'user'
    */
-  private async getGitUserName(document: vscode.TextDocument): Promise<string> {
+  public async getGitUserName(document: vscode.TextDocument): Promise<string> {
     try {
       const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
       const cwd = workspaceFolder?.uri.fsPath ?? require('path').dirname(document.uri.fsPath);

@@ -106,13 +106,14 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
   /**
    * Refresh the sidebar with updated comments
    */
-  public refresh(comments: Comment[]): void {
+  public refresh(comments: Comment[], currentUser?: string): void {
     this._comments = comments;
     if (this._view) {
       this._view.webview.postMessage({
         type: 'refresh',
-        comments: comments
-      } as SidebarMessage);
+        comments: comments,
+        currentUser: currentUser
+      });
     }
   }
 
@@ -207,6 +208,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     let editingReplyId = null;
     let replyingToCommentId = null;
     let showResolved = true;
+    let currentUser = null;
 
     function toggleResolved() {
       showResolved = !showResolved;
@@ -298,7 +300,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
             <div class="comment-actions">
               <div class="actions-left">
                 <button class="btn-icon btn-reply" onclick="event.stopPropagation(); startReply('\${comment.id}')" title="Reply"><i class="codicon codicon-comment"></i></button>
-                <button class="btn-icon btn-edit" onclick="event.stopPropagation(); startEditComment('\${comment.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>
+                \${currentUser && comment.author === currentUser ? \`<button class="btn-icon btn-edit" onclick="event.stopPropagation(); startEditComment('\${comment.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>\` : ''}
               </div>
               <div class="actions-right">
                 <button class="btn-icon btn-resolve \${comment.resolved ? 'resolved' : ''}" onclick="event.stopPropagation(); resolveComment('\${comment.id}')" title="\${comment.resolved ? 'Reopen' : 'Resolve'}"><i class="codicon codicon-\${comment.resolved ? 'issue-reopened' : 'check'}"></i></button>
@@ -454,7 +456,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
               \${editingReplyId && editingReplyId.replyId === reply.id ? renderEditReplyForm(comment.id, reply) : \`
                 <div class="reply-content">\${escapeHtml(reply.content)}</div>
                 <div class="reply-actions">
-                  <button class="btn-icon btn-edit-reply" onclick="startEditReply('\${comment.id}', '\${reply.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>
+                  \${currentUser && reply.author === currentUser ? \`<button class="btn-icon btn-edit-reply" onclick="startEditReply('\${comment.id}', '\${reply.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>\` : ''}
                   <button class="btn-icon btn-delete-reply" onclick="deleteReply('\${comment.id}', '\${reply.id}')" title="Delete"><i class="codicon codicon-trash"></i></button>
                 </div>
               \`}
@@ -528,6 +530,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case 'refresh':
           comments = message.comments || [];
+          currentUser = message.currentUser || null;
           // Reset editing states on refresh
           editingCommentId = null;
           editingReplyId = null;

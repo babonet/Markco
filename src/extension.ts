@@ -329,7 +329,7 @@ async function editCommentCommand(commentId?: string) {
   sidebarProvider.focusComment(commentId);
 }
 
-function refreshAll(editor: vscode.TextEditor) {
+async function refreshAll(editor: vscode.TextEditor) {
   const comments = commentService.parseComments(editor.document);
   commentDecorator.applyDecorations(editor, comments);
   // Sort comments by line number for logical sidebar ordering
@@ -339,7 +339,8 @@ function refreshAll(editor: vscode.TextEditor) {
     }
     return a.anchor.startChar - b.anchor.startChar;
   });
-  sidebarProvider.refresh(sortedComments);
+  const currentUser = await commentService.getGitUserName(editor.document);
+  sidebarProvider.refresh(sortedComments, currentUser);
 }
 
 function refreshDecorations(editor: vscode.TextEditor) {
