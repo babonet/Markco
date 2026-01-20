@@ -11,6 +11,22 @@ const COMMENT_BLOCK_END = '-->';
 const CURRENT_VERSION = 2;
 
 /**
+ * Sanitize text that will be stored in comments to prevent breaking the HTML comment block.
+ * The main risk is the "-->" sequence which would prematurely close the HTML comment.
+ */
+function sanitizeForStorage(text: string): string {
+  // Replace --> with a safe placeholder that won't break HTML comments
+  return text.replace(/-->/g, '--\u200B>'); // Zero-width space between -- and >
+}
+
+/**
+ * Restore sanitized text back to original form when reading.
+ */
+function restoreFromStorage(text: string): string {
+  return text.replace(/--\u200B>/g, '-->');
+}
+
+/**
  * Check if a position in text is inside a code fence (``` blocks)
  */
 function isInsideCodeFence(text: string, position: number): boolean {
@@ -99,7 +115,16 @@ export class CommentService {
 
     try {
       const data: CommentData = JSON.parse(jsonText);
-      const comments = data.comments || [];
+      // Restore any sanitized text back to original form
+      const comments = (data.comments || []).map(c => ({
+        ...c,
+        anchor: { ...c.anchor, text: restoreFromStorage(c.anchor.text) },
+        content: restoreFromStorage(c.content),
+        replies: c.replies?.map(r => ({
+          ...r,
+          content: restoreFromStorage(r.content)
+        }))
+      }));
       this.commentCache.set(uri, comments);
       return comments;
     } catch (e) {
@@ -127,9 +152,21 @@ export class CommentService {
     const uri = document.uri.toString();
     
     const text = document.getText();
+    
+    // Sanitize comments before saving to prevent breaking HTML comment block
+    const sanitizedComments = comments.map(c => ({
+      ...c,
+      anchor: { ...c.anchor, text: sanitizeForStorage(c.anchor.text) },
+      content: sanitizeForStorage(c.content),
+      replies: c.replies?.map(r => ({
+        ...r,
+        content: sanitizeForStorage(r.content)
+      }))
+    }));
+    
     const data: CommentData = {
       version: CURRENT_VERSION,
-      comments
+      comments: sanitizedComments
     };
     const jsonBlock = `${COMMENT_BLOCK_START}\n${JSON.stringify(data, null, 2)}\n${COMMENT_BLOCK_END}`;
 

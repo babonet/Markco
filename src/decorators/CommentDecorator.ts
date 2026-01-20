@@ -40,6 +40,11 @@ export class CommentDecorator {
     const focusedRanges: vscode.DecorationOptions[] = [];
 
     for (const comment of comments) {
+      // Skip resolved comments - they should not be highlighted
+      if (comment.resolved) {
+        continue;
+      }
+
       const range = this.getCommentRange(editor.document, comment);
       if (!range) {
         continue;

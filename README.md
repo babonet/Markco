@@ -8,6 +8,7 @@ Interactive commenting system for Markdown files in VS Code.
 
 - **Inline Comments** - Add comments to any selected text in Markdown files
 - **Comment Sidebar** - Dedicated panel showing all comments with navigation
+- **Inline Editing** - Edit comments and replies directly in the sidebar without pop-up dialogs
 - **Two-Way Navigation** - Click comments to jump to text, or navigate from text to comments
 - **Highlight Decorations** - Visual highlighting of commented text
 - **Comment Management** - Edit, delete, resolve, and organize comments easily
@@ -18,12 +19,21 @@ Interactive commenting system for Markdown files in VS Code.
 
 1. Open a Markdown file
 2. Select some text you want to comment on
-3. Press `Ctrl+Shift+M` (or `Cmd+Shift+M` on Mac) or right-click and select "Add Comment"
-4. Enter your comment
+3. Press `Ctrl+Shift+M` (or `Cmd+Shift+M` on Mac) or click the **+** button in the sidebar
+4. Type your comment in the sidebar form and click "Add Comment"
 5. Use the sidebar to view and navigate between comments
-6. Click "Reply" on any comment to add a reply to that thread
-7. Click the checkmark icon to resolve a comment (resolved comments remain visible but dimmed)
-8. Use the eye icon toggle in the sidebar header to show/hide resolved comments
+6. Click the reply icon on any comment to add a reply
+7. Click the edit icon to modify a comment or reply inline
+8. Click the checkmark icon to resolve a comment (resolved comments remain visible but dimmed)
+9. Use the eye icon toggle in the sidebar header to show/hide resolved comments
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+M` / `Cmd+Shift+M` | Add comment to selected text |
+| `Ctrl+Enter` / `Cmd+Enter` | Submit comment/reply (when editing in sidebar) |
+| `Escape` | Cancel editing (when in sidebar form) |
 
 ## Comment Storage
 
@@ -60,13 +70,27 @@ Comments are stored directly in the Markdown file as a JSON block in an HTML com
 }
 -->
 ```
-
+KG-->>AMO: Single template match
 This keeps comments portable and version-control friendly.
 
 
 <!-- markco-comments
 {
   "version": 2,
-  "comments": []
+  "comments": [
+    {
+      "id": "bc4237a1-ec89-4289-ab74-85026a17705d",
+      "anchor": {
+        "text": "KG-->>AMO: Single template match",
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 72,
+        "endChar": 32
+      },
+      "content": "broken comment",
+      "author": "Oren Maoz",
+      "createdAt": "2026-01-20T07:21:36.058Z"
+    }
+  ]
 }
 -->
