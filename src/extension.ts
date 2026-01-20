@@ -310,7 +310,14 @@ async function editCommentCommand(commentId?: string) {
 function refreshAll(editor: vscode.TextEditor) {
   const comments = commentService.parseComments(editor.document);
   commentDecorator.applyDecorations(editor, comments);
-  sidebarProvider.refresh(comments);
+  // Sort comments by line number for logical sidebar ordering
+  const sortedComments = [...comments].sort((a, b) => {
+    if (a.anchor.startLine !== b.anchor.startLine) {
+      return a.anchor.startLine - b.anchor.startLine;
+    }
+    return a.anchor.startChar - b.anchor.startChar;
+  });
+  sidebarProvider.refresh(sortedComments);
 }
 
 function refreshDecorations(editor: vscode.TextEditor) {
