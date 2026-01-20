@@ -2,14 +2,16 @@
   --background: var(--vscode-sideBar-background);
   --foreground: var(--vscode-sideBar-foreground);
   --border: var(--vscode-sideBar-border);
-  --highlight: rgba(255, 212, 0, 0.3);
-  --highlight-focused: rgba(255, 212, 0, 0.5);
+  --highlight: var(--vscode-editor-findMatchHighlightBackground, rgba(255, 212, 0, 0.3));
+  --highlight-focused: var(--vscode-editor-findMatchBackground, rgba(255, 212, 0, 0.5));
   --button-bg: var(--vscode-button-background);
   --button-fg: var(--vscode-button-foreground);
   --button-hover: var(--vscode-button-hoverBackground);
   --input-bg: var(--vscode-input-background);
   --input-fg: var(--vscode-input-foreground);
   --input-border: var(--vscode-input-border);
+  --resolve-color: var(--vscode-testing-iconPassed, #89d185);
+  --resolve-hover-bg: var(--vscode-testing-passingBackground, rgba(0, 128, 0, 0.2));
 }
 
 * {
@@ -125,13 +127,13 @@ kbd {
 }
 
 .comment-item {
-  background: var(--vscode-list-hoverBackground);
+  background: var(--vscode-editorWidget-background, var(--vscode-list-hoverBackground));
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: background-color 0.15s ease, transform 0.1s ease;
-  border: 1px solid transparent;
+  border: 1px solid var(--vscode-editorWidget-border, transparent);
 }
 
 .comment-item:hover {
@@ -140,7 +142,7 @@ kbd {
 
 .comment-item.focused {
   background: var(--highlight-focused);
-  border-color: var(--highlight);
+  border-color: var(--vscode-focusBorder);
 }
 
 .comment-header {
@@ -218,11 +220,11 @@ kbd {
 }
 
 .btn-icon.btn-resolve {
-  color: var(--vscode-charts-green);
+  color: var(--resolve-color);
 }
 
 .btn-icon.btn-resolve:hover {
-  background: rgba(0, 128, 0, 0.2);
+  background: var(--resolve-hover-bg);
 }
 
 .btn-icon.btn-resolve.resolved {
@@ -296,10 +298,11 @@ kbd {
 }
 
 .reply-item {
-  background: var(--vscode-editor-background);
+  background: var(--vscode-editor-inactiveSelectionBackground, var(--vscode-editor-background));
   border-radius: 4px;
   padding: 8px 10px;
   margin-bottom: 6px;
+  border: 1px solid var(--vscode-widget-border, transparent);
 }
 
 .reply-item:last-child {
