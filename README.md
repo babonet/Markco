@@ -2,14 +2,14 @@
 
 Interactive commenting system for Markdown files in VS Code.
 
-![Markco Demo](media/Markco.gif)
-
 ## Screenshots
 
 ### Comment Sidebar
+
 ![Comment Sidebar](media/screenshot1.png)
 
 ### Preview Highlighting
+
 ![Preview Highlighting](media/preview-screenshot.png)
 
 ## Features
@@ -43,7 +43,7 @@ Interactive commenting system for Markdown files in VS Code.
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
-|----------|--------|
+| -------- | ------ |
 | `Ctrl+Shift+M` / `Cmd+Shift+M` | Add comment (works with or without selection - auto-selects word or line) |
 | `Ctrl+Enter` / `Cmd+Enter` | Submit comment/reply (when editing in sidebar) |
 | `Escape` | Cancel editing (when in sidebar form) |
@@ -82,10 +82,9 @@ Comments are stored directly in the Markdown file as a JSON block in an HTML com
   ]
 }
 -->
-``` 
+```
 
 This keeps comments portable and version-control friendly.
-
 
 <!-- markco-comments
 {
