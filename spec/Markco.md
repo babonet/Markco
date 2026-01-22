@@ -1,6 +1,6 @@
-## Plan: Interactive Markdown Commenting Extension (ComMark)
+## Plan: Interactive Markdown Commenting Extension (Markco)
 
-Create a VS Code extension that enables inline commenting in Markdown files with a dedicated comment sidebar for navigation and management. Uses VS Code's native text editor with `TextEditorDecorationType` for highlighting and a `WebviewViewProvider` for the sidebar panel.
+A VS Code extension that enables inline commenting in Markdown files with a dedicated comment sidebar for navigation and management. Uses VS Code's native text editor with `TextEditorDecorationType` for highlighting, a `WebviewViewProvider` for the sidebar panel, and a markdown-it plugin for preview highlighting.
 
 ### Architecture Overview
 
@@ -15,7 +15,7 @@ Create a VS Code extension that enables inline commenting in Markdown files with
 │  │ This is [highlighted text] │◄─┼──│ ┌─────────────────┐ │ │
 │  │ with a comment.            │  │  │ │ "Review this"   │ │ │
 │  │                            │  │  │ │ On: "highligh.."│ │ │
-│  │ <!-- commark-comments      │  │  │ └─────────────────┘ │ │
+│  │ <!-- markco-comments       │  │  │ └─────────────────┘ │ │
 │  │ { "comments": [...] }      │  │  │ ┌────────────────┐  │ │
 │  │ -->                        │  │  │ │ "Check grammar"│  │ │
 │  └────────────────────────────┘  │  │ └────────────────┘  │ │
@@ -28,20 +28,25 @@ Create a VS Code extension that enables inline commenting in Markdown files with
 1. **Initialize extension project structure** with:
    - [package.json](package.json) - Extension manifest with `views`, `viewsContainers`, commands, activation events
    - [src/extension.ts](src/extension.ts) - Main activation, register providers and commands
-   - Commands: `commark.addComment`, `commark.deleteComment`, `commark.toggleSidebar`
+   - Commands: `markco.addComment`, `markco.deleteComment`, `markco.editComment`, `markco.toggleSidebar`, `markco.navigateToComment`
    - Activation: `onLanguage:markdown`
 
 2. **Create CommentService** in [src/services/CommentService.ts](src/services/CommentService.ts):
-   - `parseComments(document)` - Extract JSON from `<!-- commark-comments ... -->` block
+   - `parseComments(document)` - Extract JSON from `<!-- markco-comments ... -->` block
    - `saveComments(document, comments)` - Serialize and write JSON block to end of file
    - `addComment(document, selection, content)` - Create new comment with anchor
    - `deleteComment(document, commentId)` - Remove comment by ID (cascade deletes replies)
    - `updateComment(document, commentId, content)` - Edit comment text
+   - `findComment(document, commentId)` - Look up a comment by ID
    - `resolveComment(document, commentId)` - Toggle resolved status of a comment
+   - `reAnchorComment(document, commentId, selection)` - Re-anchor an orphaned comment to new selection
    - `addReply(document, commentId, content)` - Add a reply to an existing comment
    - `deleteReply(document, commentId, replyId)` - Remove a reply from a comment
    - `updateReply(document, commentId, replyId, content)` - Edit reply text
+   - `findReply(document, commentId, replyId)` - Look up a reply by ID
    - `reconcileAnchors(document)` - Re-match anchors after document edits
+   - `getGitUserName(document)` - Get Git user.name for author field
+   - `sanitizeForStorage()` / `restoreFromStorage()` - Handle `-->` in text to prevent breaking HTML comment block
 
 3. **Create CommentDecorator** in [src/decorators/CommentDecorator.ts](src/decorators/CommentDecorator.ts):
    - `TextEditorDecorationType` for comment highlights (background color, border)
@@ -53,12 +58,17 @@ Create a VS Code extension that enables inline commenting in Markdown files with
    - Implements `WebviewViewProvider` for sidebar panel
    - Renders comment list with HTML/CSS (no React needed for MVP)
    - Renders nested replies under each comment
-   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`, `resolveComment`, `requestReply`, `deleteReply`, `requestEditReply`
+   - Handles messages: `navigateToComment`, `deleteComment`, `editComment`, `resolveComment`, `addReply`, `editReply`, `deleteReply`, `addComment`, `submitNewComment`, `reAnchorComment`
    - `refresh()` method to update view when comments change
+   - `focusComment()` method to highlight and scroll to a comment
+   - `showAddCommentForm()` method to show the new comment form
+   - Toggle to show/hide resolved comments
+   - Author-based edit permissions (only own comments/replies editable)
+   - Orphaned comment indicators with re-anchor button
 
 5. **Implement two-way navigation**:
    - Sidebar → Editor: On comment click, use `editor.revealRange()` + flash decoration
-   - Editor → Sidebar: On text selection, command `commark.addComment` opens input box
+   - Editor → Sidebar: On text selection, command `markco.addComment` opens sidebar form (auto-selects word/line if no selection)
    - Use `vscode.commands.executeCommand` for cross-component communication
 
 6. **Wire up event listeners** in [src/extension.ts](src/extension.ts):
@@ -71,7 +81,7 @@ Create a VS Code extension that enables inline commenting in Markdown files with
 Comments are stored as a JSON block at the end of the Markdown file, wrapped in an HTML comment to remain invisible when rendered:
 
 ```markdown
-<!-- commark-comments
+<!-- markco-comments
 {
   "version": 2,
   "comments": [
@@ -88,12 +98,14 @@ Comments are stored as a JSON block at the end of the Markdown file, wrapped in 
       "author": "username",
       "createdAt": "2026-01-15T10:30:00Z",
       "resolved": false,
+      "orphaned": false,
       "replies": [
         {
           "id": "reply-uuid",
           "content": "Reply text here",
           "author": "reviewer",
-          "createdAt": "2026-01-15T11:00:00Z"
+          "createdAt": "2026-01-15T11:00:00Z",
+          "updatedAt": "2026-01-15T11:30:00Z"
         }
       ]
     }
@@ -114,19 +126,24 @@ Comments are stored as a JSON block at the end of the Markdown file, wrapped in 
 ### File Structure
 
 ```
-commark/
+markco/
 ├── package.json
 ├── tsconfig.json
 ├── src/
-│   ├── extension.ts              # Activation, command registration
-│   ├── types.ts                  # Comment, Anchor interfaces
+│   ├── extension.ts              # Activation, command registration, event handlers
+│   ├── types.ts                  # Comment, Anchor, Reply, SidebarMessage interfaces
 │   ├── services/
-│   │   └── CommentService.ts     # Parse, save, CRUD operations
+│   │   └── CommentService.ts     # Parse, save, CRUD operations, anchor reconciliation
 │   ├── decorators/
 │   │   └── CommentDecorator.ts   # TextEditorDecorationType management
-│   └── providers/
-│       └── CommentSidebarProvider.ts  # WebviewViewProvider
+│   ├── providers/
+│   │   └── CommentSidebarProvider.ts  # WebviewViewProvider with 12 callback parameters
+│   ├── markdown/
+│   │   └── markcoPreviewPlugin.ts    # markdown-it plugin for preview highlighting
+│   └── test/
+│       └── suite/                # Test files for all components
 └── media/
     ├── sidebar.css               # Sidebar styling
-    └── icon.svg                  # Activity bar icon
+    ├── preview.css               # Preview highlighting styles
+    └── markco.png                # Extension icon
 ```

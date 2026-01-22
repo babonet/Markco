@@ -2,7 +2,7 @@
   "name": "markco",
   "displayName": "Markco - Markdown Comments",
   "description": "Interactive commenting system for Markdown files with inline highlights and sidebar navigation",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "publisher": "OrenMaoz",
   "repository": {
     "type": "git",
@@ -92,7 +92,7 @@
         "command": "markco.addComment",
         "key": "ctrl+shift+m",
         "mac": "cmd+shift+m",
-        "when": "editorLangId == markdown && editorHasSelection"
+        "when": "editorLangId == markdown"
       }
     ],
     "configuration": {

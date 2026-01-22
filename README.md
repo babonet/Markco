@@ -7,6 +7,7 @@ Interactive commenting system for Markdown files in VS Code.
 ## Features
 
 - **Inline Comments** - Add comments to any selected text in Markdown files
+- **Smart Selection** - Auto-selects word at cursor or entire line if no text selected
 - **Comment Sidebar** - Dedicated panel showing all comments with navigation
 - **Inline Editing** - Edit comments and replies directly in the sidebar without pop-up dialogs
 - **Two-Way Navigation** - Click comments to jump to text, or navigate from text to comments
@@ -15,6 +16,8 @@ Interactive commenting system for Markdown files in VS Code.
 - **Comment Management** - Edit, delete, resolve, and organize comments easily
 - **Threaded Replies** - Reply to existing comments to create discussion threads
 - **Resolve Comments** - Mark comments as resolved without deleting them
+- **Orphan Recovery** - Re-anchor comments when their original text is deleted
+- **Git Integration** - Author names automatically populated from Git config
 
 ## Usage
 
@@ -24,15 +27,16 @@ Interactive commenting system for Markdown files in VS Code.
 4. Type your comment in the sidebar form and click "Add Comment"
 5. Use the sidebar to view and navigate between comments
 6. Click the reply icon on any comment to add a reply
-7. Click the edit icon to modify a comment or reply inline
+7. Click the edit icon to modify a comment or reply inline (only your own comments/replies)
 8. Click the checkmark icon to resolve a comment (resolved comments remain visible but dimmed)
 9. Use the eye icon toggle in the sidebar header to show/hide resolved comments
+10. If anchor text is deleted, use the pin icon on orphaned comments to re-anchor to new selected text
 
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+Shift+M` / `Cmd+Shift+M` | Add comment (auto-selects word or line if no selection) |
+| `Ctrl+Shift+M` / `Cmd+Shift+M` | Add comment (works with or without selection - auto-selects word or line) |
 | `Ctrl+Enter` / `Cmd+Enter` | Submit comment/reply (when editing in sidebar) |
 | `Escape` | Cancel editing (when in sidebar form) |
 

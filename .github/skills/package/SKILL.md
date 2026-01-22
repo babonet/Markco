@@ -1,6 +1,6 @@
 ---
 name: package
-description: Guide for increasing the version and packaging a VSIX extension
+description: Guide for increasing the version and packaging a VSIX extension, used when creating a new package release
 ---
 # Plus One Publish
 
