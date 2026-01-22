@@ -48,13 +48,13 @@ A VS Code extension that enables inline commenting in Markdown files with a dedi
    - `getGitUserName(document)` - Get Git user.name for author field
    - `sanitizeForStorage()` / `restoreFromStorage()` - Handle `-->` in text to prevent breaking HTML comment block
 
-1. **Create CommentDecorator** in [src/decorators/CommentDecorator.ts](src/decorators/CommentDecorator.ts):
+3. **Create CommentDecorator** in [src/decorators/CommentDecorator.ts](src/decorators/CommentDecorator.ts):
    - `TextEditorDecorationType` for comment highlights (background color, border)
    - `applyDecorations(editor, comments)` - Set decoration ranges from comment anchors
    - `clearDecorations(editor)` - Remove all decorations
    - Listen to `onDidChangeTextDocument` to update decorations in real-time
 
-2. **Create CommentSidebarProvider** in [src/providers/CommentSidebarProvider.ts](src/providers/CommentSidebarProvider.ts):
+4. **Create CommentSidebarProvider** in [src/providers/CommentSidebarProvider.ts](src/providers/CommentSidebarProvider.ts):
    - Implements `WebviewViewProvider` for sidebar panel
    - Renders comment list with HTML/CSS (no React needed for MVP)
    - Renders nested replies under each comment
@@ -66,12 +66,12 @@ A VS Code extension that enables inline commenting in Markdown files with a dedi
    - Author-based edit permissions (only own comments/replies editable)
    - Orphaned comment indicators with re-anchor button
 
-3. **Implement two-way navigation**:
+5. **Implement two-way navigation**:
    - Sidebar → Editor: On comment click, use `editor.revealRange()` + flash decoration
    - Editor → Sidebar: On text selection, command `markco.addComment` opens sidebar form (auto-selects word/line if no selection)
    - Use `vscode.commands.executeCommand` for cross-component communication
 
-4. **Wire up event listeners** in [src/extension.ts](src/extension.ts):
+6. **Wire up event listeners** in [src/extension.ts](src/extension.ts):
    - `onDidChangeActiveTextEditor` - Refresh decorations and sidebar
    - `onDidChangeTextDocument` - Reconcile anchors, update decorations
    - `onDidSaveTextDocument` - Persist any pending anchor updates

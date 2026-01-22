@@ -2,7 +2,10 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as Mocha from 'mocha';
+import * as fs from 'fs';
+import * as path from 'path';
 import { CommentDecorator } from '../../decorators/CommentDecorator';
+import { CommentService } from '../../services/CommentService';
 import { Comment } from '../../types';
 
 const suite = Mocha.suite;
@@ -10,13 +13,19 @@ const test = Mocha.test;
 const setup = Mocha.setup;
 const teardown = Mocha.teardown;
 
+// Load Markco.md as test data
+const markcoPath = path.join(__dirname, '../../../spec/Markco.md');
+const markcoContent = fs.readFileSync(markcoPath, 'utf-8');
+
 suite('CommentDecorator Test Suite', () => {
   let commentDecorator: CommentDecorator;
+  let commentService: CommentService;
   let sandbox: sinon.SinonSandbox;
 
   setup(() => {
     sandbox = sinon.createSandbox();
     commentDecorator = new CommentDecorator();
+    commentService = new CommentService();
   });
 
   teardown(() => {
@@ -42,26 +51,38 @@ suite('CommentDecorator Test Suite', () => {
   });
 
   suite('findCommentAtPosition', () => {
-    test('should find comment at given position', () => {
-      const comments: Comment[] = [
-        createMockComment('comment-1', 'Hello', 0, 2, 0, 7)
-      ];
+    test('should find first comment in Markco.md at its position', () => {
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
       
-      const document = createMockDocument('# Hello World');
-      const position = new vscode.Position(0, 4); // Inside "Hello"
+      // Position inside the first comment's anchor (line 2, which is the overview paragraph)
+      const position = new vscode.Position(2, 50);
       
       const found = commentDecorator.findCommentAtPosition(document, position, comments);
       
-      assert.strictEqual(found?.id, 'comment-1');
+      assert.strictEqual(found?.id, '202ba2e2-78e6-410e-9274-33c4069fac71');
+      assert.strictEqual(found?.content, 'Nice overview');
+    });
+
+    test('should find second comment in Markco.md at its position', () => {
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
+      
+      // Position inside the second comment's anchor (line 19, "Check grammar")
+      const position = new vscode.Position(19, 50);
+      
+      const found = commentDecorator.findCommentAtPosition(document, position, comments);
+      
+      assert.strictEqual(found?.id, '7c2fe2ce-8732-46b8-be07-020eb1c86d32');
+      assert.strictEqual(found?.content, 'What does it mean?');
     });
 
     test('should return undefined when no comment at position', () => {
-      const comments: Comment[] = [
-        createMockComment('comment-1', 'Hello', 0, 2, 0, 7)
-      ];
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
       
-      const document = createMockDocument('# Hello World');
-      const position = new vscode.Position(0, 10); // In "World", outside comment
+      // Position outside any comment anchor
+      const position = new vscode.Position(0, 0); // First line "# Interactive..."
 
       const found = commentDecorator.findCommentAtPosition(document, position, comments);
       
@@ -99,29 +120,28 @@ suite('CommentDecorator Test Suite', () => {
       commentDecorator.applyDecorations(editor, comments);
     });
 
-    test('should apply decorations for valid comments', async () => {
-      const editor = await createMockEditor('# Hello World');
-      const comments: Comment[] = [
-        createMockComment('valid-1', 'Hello', 0, 2, 0, 7)
-      ];
+    test('should apply decorations for Markco.md comments', async () => {
+      const editor = await createMockEditor(markcoContent);
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
       
-      // Should not throw
+      // Should not throw and should apply decorations for 2 comments
       commentDecorator.applyDecorations(editor, comments);
+      
+      assert.strictEqual(comments.length, 2);
     });
 
-    test('should highlight focused comment differently', async () => {
-      const editor = await createMockEditor('# Hello World\nSome more text');
-      const comments: Comment[] = [
-        createMockComment('focus-me', 'Hello', 0, 2, 0, 7),
-        createMockComment('other', 'Some', 1, 0, 1, 4)
-      ];
+    test('should highlight focused comment in Markco.md differently', async () => {
+      const editor = await createMockEditor(markcoContent);
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
       
-      commentDecorator.setFocusedComment('focus-me');
+      commentDecorator.setFocusedComment('202ba2e2-78e6-410e-9274-33c4069fac71');
       
       // Should not throw
       commentDecorator.applyDecorations(editor, comments);
       
-      assert.strictEqual(commentDecorator.getFocusedCommentId(), 'focus-me');
+      assert.strictEqual(commentDecorator.getFocusedCommentId(), '202ba2e2-78e6-410e-9274-33c4069fac71');
     });
   });
 
@@ -140,14 +160,15 @@ suite('CommentDecorator Test Suite', () => {
   });
 
   suite('navigateToComment', () => {
-    test('should navigate to comment position', async () => {
-      const editor = await createMockEditor('# Hello World\nLine 2\nLine 3');
-      const comment = createMockComment('nav-comment', 'Hello', 0, 2, 0, 7);
+    test('should navigate to comment position in Markco.md', async () => {
+      const editor = await createMockEditor(markcoContent);
+      const document = createMockDocument(markcoContent);
+      const comments = commentService.parseComments(document);
       
-      // Should not throw and should set focused comment
-      commentDecorator.navigateToComment(editor, comment);
+      // Navigate to first comment
+      commentDecorator.navigateToComment(editor, comments[0]);
       
-      assert.strictEqual(commentDecorator.getFocusedCommentId(), 'nav-comment');
+      assert.strictEqual(commentDecorator.getFocusedCommentId(), '202ba2e2-78e6-410e-9274-33c4069fac71');
     });
   });
 

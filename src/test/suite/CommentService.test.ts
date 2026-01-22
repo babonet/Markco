@@ -2,6 +2,8 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as Mocha from 'mocha';
+import * as fs from 'fs';
+import * as path from 'path';
 import { CommentService } from '../../services/CommentService';
 import { Comment, CommentAnchor } from '../../types';
 
@@ -9,6 +11,10 @@ const suite = Mocha.suite;
 const test = Mocha.test;
 const setup = Mocha.setup;
 const teardown = Mocha.teardown;
+
+// Load Markco.md as test data
+const markcoPath = path.join(__dirname, '../../../spec/Markco.md');
+const markcoContent = fs.readFileSync(markcoPath, 'utf-8');
 
 suite('CommentService Test Suite', () => {
   let commentService: CommentService;
@@ -30,27 +36,17 @@ suite('CommentService Test Suite', () => {
       assert.deepStrictEqual(comments, []);
     });
 
-    test('should parse valid comment block', () => {
-      const commentData = {
-        version: 2,
-        comments: [
-          {
-            id: 'test-id-1',
-            anchor: { text: 'Hello', startLine: 0, startChar: 2, endLine: 0, endChar: 7 },
-            content: 'This is a comment',
-            author: 'testuser',
-            createdAt: '2024-01-01T00:00:00.000Z'
-          }
-        ]
-      };
-      const documentText = `# Hello World\n\n<!-- markco-comments\n${JSON.stringify(commentData, null, 2)}\n-->`;
-      const mockDocument = createMockDocument(documentText);
+    test('should parse valid comment block from Markco.md', () => {
+      const mockDocument = createMockDocument(markcoContent);
       
       const comments = commentService.parseComments(mockDocument);
       
-      assert.strictEqual(comments.length, 1);
-      assert.strictEqual(comments[0].id, 'test-id-1');
-      assert.strictEqual(comments[0].content, 'This is a comment');
+      assert.strictEqual(comments.length, 2);
+      assert.strictEqual(comments[0].id, '202ba2e2-78e6-410e-9274-33c4069fac71');
+      assert.strictEqual(comments[0].content, 'Nice overview');
+      assert.strictEqual(comments[0].author, 'Oren Maoz');
+      assert.strictEqual(comments[1].id, '7c2fe2ce-8732-46b8-be07-020eb1c86d32');
+      assert.strictEqual(comments[1].content, 'What does it mean?');
     });
 
     test('should handle malformed JSON gracefully', () => {
@@ -95,59 +91,34 @@ suite('CommentService Test Suite', () => {
   });
 
   suite('getComments', () => {
-    test('should cache parsed comments', () => {
-      const commentData = {
-        version: 2,
-        comments: [
-          {
-            id: 'cached-id',
-            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
-            content: 'Cached comment',
-            author: 'user',
-            createdAt: '2024-01-01T00:00:00.000Z'
-          }
-        ]
-      };
-      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
-      const mockDocument = createMockDocument(documentText);
+    test('should cache parsed comments from Markco.md', () => {
+      const mockDocument = createMockDocument(markcoContent);
 
       // First call parses
       const comments1 = commentService.getComments(mockDocument);
       // Second call should use cache
       const comments2 = commentService.getComments(mockDocument);
       
-      assert.strictEqual(comments1.length, 1);
-      assert.strictEqual(comments2.length, 1);
-      assert.strictEqual(comments1[0].id, 'cached-id');
+      assert.strictEqual(comments1.length, 2);
+      assert.strictEqual(comments2.length, 2);
+      assert.strictEqual(comments1[0].id, '202ba2e2-78e6-410e-9274-33c4069fac71');
+      assert.strictEqual(comments1, comments2);
     });
   });
 
   suite('findComment', () => {
-    test('should find comment by ID', () => {
-      const commentData = {
-        version: 2,
-        comments: [
-          {
-            id: 'find-me',
-            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
-            content: 'Found it',
-            author: 'user',
-            createdAt: '2024-01-01T00:00:00.000Z'
-          }
-        ]
-      };
-      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
-      const mockDocument = createMockDocument(documentText);
+    test('should find comment by ID in Markco.md', () => {
+      const mockDocument = createMockDocument(markcoContent);
 
-      const comment = commentService.findComment(mockDocument, 'find-me');
+      const comment = commentService.findComment(mockDocument, '202ba2e2-78e6-410e-9274-33c4069fac71');
       
-      assert.strictEqual(comment?.id, 'find-me');
-      assert.strictEqual(comment?.content, 'Found it');
+      assert.strictEqual(comment?.id, '202ba2e2-78e6-410e-9274-33c4069fac71');
+      assert.strictEqual(comment?.content, 'Nice overview');
+      assert.strictEqual(comment?.author, 'Oren Maoz');
     });
 
     test('should return undefined for non-existent comment', () => {
-      const documentText = `# Test\n\n<!-- markco-comments\n{"version": 2, "comments": []}\n-->`;
-      const mockDocument = createMockDocument(documentText);
+      const mockDocument = createMockDocument(markcoContent);
 
       const comment = commentService.findComment(mockDocument, 'non-existent');
       
@@ -287,31 +258,17 @@ suite('CommentService Test Suite', () => {
       assert.strictEqual(comments[0].orphaned, true, 'Comment should be orphaned when anchor text only exists in comment block');
     });
 
-    test('should find anchor text that exists in document content', async () => {
-      const anchorText = 'Hello World';
-      const commentData = {
-        version: 2,
-        comments: [
-          {
-            id: 'test-comment',
-            anchor: { text: anchorText, startLine: 0, startChar: 2, endLine: 0, endChar: 13 },
-            content: 'A comment',
-            author: 'testuser',
-            createdAt: '2024-01-01T00:00:00.000Z',
-            orphaned: false
-          }
-        ]
-      };
-      // Document where the anchor text EXISTS in the content
-      const documentText = `# Hello World\n\nSome other text\n\n<!-- markco-comments\n${JSON.stringify(commentData, null, 2)}\n-->`;
-      const mockDocument = createMockDocument(documentText);
+    test('should find anchor text that exists in Markco.md content', async () => {
+      const mockDocument = createMockDocument(markcoContent);
       
       commentService.parseComments(mockDocument);
       await commentService.reconcileAnchors(mockDocument);
       
       const comments = commentService.getComments(mockDocument);
-      assert.strictEqual(comments.length, 1);
-      assert.strictEqual(comments[0].orphaned, false, 'Comment should NOT be orphaned when anchor text exists in content');
+      assert.strictEqual(comments.length, 2);
+      // Both comments should NOT be orphaned since their anchor text exists in the content
+      assert.strictEqual(comments[0].orphaned, false, 'First comment should NOT be orphaned');
+      assert.strictEqual(comments[1].orphaned, false, 'Second comment should NOT be orphaned');
     });
   });
 });

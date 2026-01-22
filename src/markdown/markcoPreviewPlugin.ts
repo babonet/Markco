@@ -249,6 +249,114 @@ function extractTextWithPositions(children: Token[]): {
 }
 
 /**
+ * Helper to escape HTML for use in attributes
+ */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+/**
+ * Processes fence (code block) tokens to wrap anchor text in highlight spans.
+ * Fence tokens have content directly in token.content rather than children.
+ */
+function processFenceTokens(
+  tokens: Token[],
+  lineComments: Map<number, Comment[]>,
+  TokenCtor: TokenConstructor
+): void {
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    
+    // Only process fence tokens with line mapping
+    if (!token.map || token.type !== 'fence') {
+      continue;
+    }
+
+    const [startLine, endLine] = token.map;
+    console.log('Markco: Processing fence token lines', startLine, '-', endLine);
+    
+    // Collect all comments that fall within this token's line range
+    const relevantComments: Comment[] = [];
+    for (let line = startLine; line < endLine; line++) {
+      const comments = lineComments.get(line);
+      if (comments) {
+        relevantComments.push(...comments);
+      }
+    }
+
+    console.log('Markco: Found', relevantComments.length, 'relevant comments for fence token');
+    
+    if (relevantComments.length === 0) {
+      continue;
+    }
+
+    // For fence tokens, we need to modify the content and change how it renders
+    // We'll convert it to an html_block that includes our highlights
+    const content = token.content;
+    const info = (token as unknown as { info: string }).info || ''; // language info
+    
+    // Find all anchor matches and their positions
+    const matches: Array<{ start: number; end: number; comment: Comment }> = [];
+    
+    for (const comment of relevantComments) {
+      const anchorText = comment.anchor.text;
+      let searchPos = 0;
+      let index = content.indexOf(anchorText, searchPos);
+      
+      if (index !== -1) {
+        console.log('Markco: Found fence anchor match at position', index, 'for text:', anchorText.substring(0, 30));
+        matches.push({
+          start: index,
+          end: index + anchorText.length,
+          comment
+        });
+      }
+    }
+    
+    if (matches.length === 0) {
+      continue;
+    }
+    
+    // Sort matches by start position
+    matches.sort((a, b) => a.start - b.start);
+    
+    // Build new content with highlight spans
+    let newContent = '';
+    let pos = 0;
+    
+    for (const match of matches) {
+      // Add text before this match (escaped)
+      if (match.start > pos) {
+        newContent += escapeHtml(content.substring(pos, match.start));
+      }
+      
+      // Add highlighted text
+      const resolvedClass = match.comment.resolved ? ' markco-resolved' : '';
+      const tooltipText = escapeHtml(match.comment.content);
+      const highlightedText = escapeHtml(content.substring(match.start, match.end));
+      newContent += `<span class="markco-highlight${resolvedClass}" data-comment-id="${match.comment.id}" title="${tooltipText}">${highlightedText}</span>`;
+      
+      pos = match.end;
+    }
+    
+    // Add remaining text
+    if (pos < content.length) {
+      newContent += escapeHtml(content.substring(pos));
+    }
+    
+    // Convert fence token to html_block with pre/code wrapper
+    token.type = 'html_block';
+    token.tag = '';
+    const langClass = info ? ` class="language-${escapeHtml(info)}"` : '';
+    token.content = `<pre><code${langClass}>${newContent}</code></pre>\n`;
+  }
+}
+
+/**
  * Processes inline tokens to wrap anchor text in highlight spans.
  * Handles anchors that span across multiple child tokens (e.g., formatted text).
  */
@@ -329,16 +437,6 @@ function processInlineTokens(
     // Build new children array with highlight spans inserted
     const newChildren: Token[] = [];
     let currentTextPos = 0;
-    let childIndex = 0;
-    
-    // Helper to escape HTML for use in attributes
-    const escapeHtml = (text: string): string => {
-      return text
-        .replace(/&/g, '&amp;')
-        .replace(/"/g, '&quot;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-    };
     
     // Helper to add highlight wrapper tokens
     const addHighlightOpen = (comment: Comment) => {
@@ -509,6 +607,9 @@ export function markcoPreviewPlugin(md: MarkdownIt): void {
 
     // Get Token constructor from state
     const TokenCtor = state.Token as unknown as TokenConstructor;
+
+    // Process fence (code block) tokens
+    processFenceTokens(state.tokens, lineComments, TokenCtor);
 
     // Process inline tokens to wrap anchor text
     processInlineTokens(state.tokens, lineComments, TokenCtor);
