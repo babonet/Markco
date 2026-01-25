@@ -2,7 +2,7 @@
   "name": "markco",
   "displayName": "Markco - Markdown Comments",
   "description": "Interactive commenting system for Markdown files with inline highlights and sidebar navigation",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "publisher": "OrenMaoz",
   "repository": {
     "type": "git",
