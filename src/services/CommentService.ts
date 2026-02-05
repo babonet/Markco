@@ -434,6 +434,90 @@ export class CommentService {
   }
 
   /**
+   * Toggle thumbs up on a comment for the current user.
+   * Adds the user if not present, removes if already present.
+   */
+  async toggleThumbsUpComment(
+    document: vscode.TextDocument,
+    commentId: string
+  ): Promise<Comment | null> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment) {
+      return null;
+    }
+
+    const author = await this.getGitUserName(document);
+    
+    if (!comment.thumbsUp) {
+      comment.thumbsUp = [];
+    }
+
+    const index = comment.thumbsUp.indexOf(author);
+    if (index === -1) {
+      // Add thumbs up
+      comment.thumbsUp.push(author);
+    } else {
+      // Remove thumbs up
+      comment.thumbsUp.splice(index, 1);
+    }
+
+    // Clean up empty array
+    if (comment.thumbsUp.length === 0) {
+      delete comment.thumbsUp;
+    }
+
+    const success = await this.saveComments(document, comments);
+    return success ? comment : null;
+  }
+
+  /**
+   * Toggle thumbs up on a reply for the current user.
+   * Adds the user if not present, removes if already present.
+   */
+  async toggleThumbsUpReply(
+    document: vscode.TextDocument,
+    commentId: string,
+    replyId: string
+  ): Promise<Reply | null> {
+    const comments = this.getComments(document);
+    const comment = comments.find(c => c.id === commentId);
+
+    if (!comment || !comment.replies) {
+      return null;
+    }
+
+    const reply = comment.replies.find(r => r.id === replyId);
+    if (!reply) {
+      return null;
+    }
+
+    const author = await this.getGitUserName(document);
+
+    if (!reply.thumbsUp) {
+      reply.thumbsUp = [];
+    }
+
+    const index = reply.thumbsUp.indexOf(author);
+    if (index === -1) {
+      // Add thumbs up
+      reply.thumbsUp.push(author);
+    } else {
+      // Remove thumbs up
+      reply.thumbsUp.splice(index, 1);
+    }
+
+    // Clean up empty array
+    if (reply.thumbsUp.length === 0) {
+      delete reply.thumbsUp;
+    }
+
+    const success = await this.saveComments(document, comments);
+    return success ? reply : null;
+  }
+
+  /**
    * Toggle the resolved status of a comment
    */
   async resolveComment(

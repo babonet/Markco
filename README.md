@@ -24,6 +24,7 @@ Interactive commenting system for Markdown files in VS Code.
 - **Comment Management** - Edit, delete, resolve, and organize comments easily
 - **Threaded Replies** - Reply to existing comments to create discussion threads
 - **Resolve Comments** - Mark comments as resolved without deleting them
+- **Thumbs Up Reactions** - Show appreciation for comments and replies with thumbs up
 - **Orphan Recovery** - Re-anchor comments when their original text is deleted
 - **Git Integration** - Author names automatically populated from Git config
 
@@ -39,6 +40,7 @@ Interactive commenting system for Markdown files in VS Code.
 8. Click the checkmark icon to resolve a comment (resolved comments remain visible but dimmed)
 9. Use the eye icon toggle in the sidebar header to show/hide resolved comments
 10. If anchor text is deleted, use the pin icon on orphaned comments to re-anchor to new selected text
+11. Click the thumbs up icon on any comment or reply to react (click again to remove)
 
 ## Keyboard Shortcuts
 

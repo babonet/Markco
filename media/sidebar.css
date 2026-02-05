@@ -487,3 +487,24 @@ kbd {
   padding-top: 8px;
   border-top: 1px solid var(--border);
 }
+
+/* Thumbs up button */
+.btn-icon.btn-thumbsup {
+  color: var(--vscode-descriptionForeground);
+  gap: 3px;
+}
+
+.btn-icon.btn-thumbsup:hover {
+  color: var(--vscode-textLink-foreground);
+  background: var(--vscode-button-secondaryHoverBackground);
+}
+
+.btn-icon.btn-thumbsup.active {
+  color: var(--vscode-textLink-foreground);
+}
+
+.thumbsup-count {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 14px;
+}

@@ -28,6 +28,8 @@ export interface Reply {
   createdAt: string;
   /** ISO 8601 timestamp of last update */
   updatedAt?: string;
+  /** Array of usernames who gave thumbs up */
+  thumbsUp?: string[];
 }
 
 /**
@@ -50,6 +52,8 @@ export interface Comment {
   resolved?: boolean;
   /** Whether the anchor text was deleted and can't be found */
   orphaned?: boolean;
+  /** Array of usernames who gave thumbs up */
+  thumbsUp?: string[];
   /** Replies to this comment */
   replies?: Reply[];
 }
@@ -83,4 +87,6 @@ export type SidebarMessage =
   | { type: 'ready' }
   | { type: 'addComment' }
   | { type: 'showAddCommentForm'; hasSelection: boolean }
-  | { type: 'submitNewComment'; content: string };
+  | { type: 'submitNewComment'; content: string }
+  | { type: 'toggleThumbsUpComment'; commentId: string }
+  | { type: 'toggleThumbsUpReply'; commentId: string; replyId: string };

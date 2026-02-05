@@ -22,7 +22,9 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
     private readonly _onResolve?: (commentId: string) => void,
     private readonly _onAddComment?: () => void,
     private readonly _onSubmitNewComment?: (content: string) => void,
-    private readonly _onReAnchor?: (commentId: string) => void
+    private readonly _onReAnchor?: (commentId: string) => void,
+    private readonly _onThumbsUpComment?: (commentId: string) => void,
+    private readonly _onThumbsUpReply?: (commentId: string, replyId: string) => void
   ) {}
 
   public resolveWebviewView(
@@ -90,6 +92,16 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
         case 'reAnchorComment':
           if (this._onReAnchor) {
             this._onReAnchor(message.commentId);
+          }
+          break;
+        case 'toggleThumbsUpComment':
+          if (this._onThumbsUpComment) {
+            this._onThumbsUpComment(message.commentId);
+          }
+          break;
+        case 'toggleThumbsUpReply':
+          if (this._onThumbsUpReply) {
+            this._onThumbsUpReply(message.commentId, message.replyId);
           }
           break;
       }
@@ -301,6 +313,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
               <div class="actions-left">
                 <button class="btn-icon btn-reply" onclick="event.stopPropagation(); startReply('\${comment.id}')" title="Reply"><i class="codicon codicon-comment"></i></button>
                 \${currentUser && comment.author === currentUser ? \`<button class="btn-icon btn-edit" onclick="event.stopPropagation(); startEditComment('\${comment.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>\` : ''}
+                <button class="btn-icon btn-thumbsup \${comment.thumbsUp && comment.thumbsUp.includes(currentUser) ? 'active' : ''}" onclick="event.stopPropagation(); toggleThumbsUpComment('\${comment.id}')" title="\${comment.thumbsUp && comment.thumbsUp.length ? comment.thumbsUp.join(', ') : 'No reactions'}"><i class="codicon codicon-thumbsup"></i>\${comment.thumbsUp && comment.thumbsUp.length > 1 ? \`<span class="thumbsup-count">\${comment.thumbsUp.length}</span>\` : ''}</button>
               </div>
               <div class="actions-right">
                 <button class="btn-icon btn-resolve \${comment.resolved ? 'resolved' : ''}" onclick="event.stopPropagation(); resolveComment('\${comment.id}')" title="\${comment.resolved ? 'Reopen' : 'Resolve'}"><i class="codicon codicon-\${comment.resolved ? 'issue-reopened' : 'check'}"></i></button>
@@ -372,6 +385,14 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
 
     function reAnchorComment(id) {
       vscode.postMessage({ type: 'reAnchorComment', commentId: id });
+    }
+
+    function toggleThumbsUpComment(id) {
+      vscode.postMessage({ type: 'toggleThumbsUpComment', commentId: id });
+    }
+
+    function toggleThumbsUpReply(commentId, replyId) {
+      vscode.postMessage({ type: 'toggleThumbsUpReply', commentId: commentId, replyId: replyId });
     }
 
     function startEditComment(id) {
@@ -457,6 +478,7 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
                 <div class="reply-content">\${escapeHtml(reply.content)}</div>
                 <div class="reply-actions">
                   \${currentUser && reply.author === currentUser ? \`<button class="btn-icon btn-edit-reply" onclick="startEditReply('\${comment.id}', '\${reply.id}')" title="Edit"><i class="codicon codicon-edit"></i></button>\` : ''}
+                  <button class="btn-icon btn-thumbsup \${reply.thumbsUp && reply.thumbsUp.includes(currentUser) ? 'active' : ''}" onclick="toggleThumbsUpReply('\${comment.id}', '\${reply.id}')" title="\${reply.thumbsUp && reply.thumbsUp.length ? reply.thumbsUp.join(', ') : 'No reactions'}"><i class="codicon codicon-thumbsup"></i>\${reply.thumbsUp && reply.thumbsUp.length > 1 ? \`<span class="thumbsup-count">\${reply.thumbsUp.length}</span>\` : ''}</button>
                   <button class="btn-icon btn-delete-reply" onclick="deleteReply('\${comment.id}', '\${reply.id}')" title="Delete"><i class="codicon codicon-trash"></i></button>
                 </div>
               \`}

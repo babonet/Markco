@@ -167,6 +167,26 @@ export function activate(context: vscode.ExtensionContext) {
       } else {
         vscode.window.showErrorMessage('Failed to re-anchor comment');
       }
+    },
+    // Thumbs up comment callback - toggles thumbs up on a comment
+    async (commentId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      await commentService.toggleThumbsUpComment(editor.document, commentId);
+      refreshAll(editor);
+    },
+    // Thumbs up reply callback - toggles thumbs up on a reply
+    async (commentId: string, replyId: string) => {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor || editor.document.languageId !== 'markdown') {
+        return;
+      }
+
+      await commentService.toggleThumbsUpReply(editor.document, commentId, replyId);
+      refreshAll(editor);
     }
   );
 

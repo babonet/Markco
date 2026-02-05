@@ -272,6 +272,141 @@ suite('CommentService Test Suite', () => {
       assert.ok(!comments[1].orphaned, 'Second comment should NOT be orphaned');
     });
   });
+
+  suite('Thumbs up operations', () => {
+    test('toggleThumbsUpComment should add thumbs up when not present', async () => {
+      const commentData = {
+        version: 2,
+        comments: [
+          {
+            id: 'comment-1',
+            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
+            content: 'Main comment',
+            author: 'user',
+            createdAt: '2024-01-01T00:00:00.000Z'
+          }
+        ]
+      };
+      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
+      const mockDocument = createMockDocument(documentText);
+
+      // Stub getGitUserName to return a consistent user
+      sandbox.stub(commentService, 'getGitUserName').resolves('testuser');
+      // Stub saveComments to avoid actual file writing
+      sandbox.stub(commentService, 'saveComments').resolves(true);
+
+      const result = await commentService.toggleThumbsUpComment(mockDocument, 'comment-1');
+      
+      assert.ok(result, 'Should return the comment');
+      assert.deepStrictEqual(result?.thumbsUp, ['testuser']);
+    });
+
+    test('toggleThumbsUpComment should remove thumbs up when already present', async () => {
+      const commentData = {
+        version: 2,
+        comments: [
+          {
+            id: 'comment-1',
+            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
+            content: 'Main comment',
+            author: 'user',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            thumbsUp: ['testuser', 'otheruser']
+          }
+        ]
+      };
+      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
+      const mockDocument = createMockDocument(documentText);
+
+      sandbox.stub(commentService, 'getGitUserName').resolves('testuser');
+      sandbox.stub(commentService, 'saveComments').resolves(true);
+
+      const result = await commentService.toggleThumbsUpComment(mockDocument, 'comment-1');
+      
+      assert.ok(result, 'Should return the comment');
+      assert.deepStrictEqual(result?.thumbsUp, ['otheruser']);
+    });
+
+    test('toggleThumbsUpReply should add thumbs up to reply', async () => {
+      const commentData = {
+        version: 2,
+        comments: [
+          {
+            id: 'comment-1',
+            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
+            content: 'Main comment',
+            author: 'user',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            replies: [
+              {
+                id: 'reply-1',
+                content: 'A reply',
+                author: 'replier',
+                createdAt: '2024-01-02T00:00:00.000Z'
+              }
+            ]
+          }
+        ]
+      };
+      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
+      const mockDocument = createMockDocument(documentText);
+
+      sandbox.stub(commentService, 'getGitUserName').resolves('testuser');
+      sandbox.stub(commentService, 'saveComments').resolves(true);
+
+      const result = await commentService.toggleThumbsUpReply(mockDocument, 'comment-1', 'reply-1');
+      
+      assert.ok(result, 'Should return the reply');
+      assert.deepStrictEqual(result?.thumbsUp, ['testuser']);
+    });
+
+    test('toggleThumbsUpReply should remove thumbs up from reply when present', async () => {
+      const commentData = {
+        version: 2,
+        comments: [
+          {
+            id: 'comment-1',
+            anchor: { text: 'test', startLine: 0, startChar: 0, endLine: 0, endChar: 4 },
+            content: 'Main comment',
+            author: 'user',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            replies: [
+              {
+                id: 'reply-1',
+                content: 'A reply',
+                author: 'replier',
+                createdAt: '2024-01-02T00:00:00.000Z',
+                thumbsUp: ['testuser']
+              }
+            ]
+          }
+        ]
+      };
+      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
+      const mockDocument = createMockDocument(documentText);
+
+      sandbox.stub(commentService, 'getGitUserName').resolves('testuser');
+      sandbox.stub(commentService, 'saveComments').resolves(true);
+
+      const result = await commentService.toggleThumbsUpReply(mockDocument, 'comment-1', 'reply-1');
+      
+      assert.ok(result, 'Should return the reply');
+      assert.strictEqual(result?.thumbsUp, undefined, 'Should clean up empty thumbsUp array');
+    });
+
+    test('toggleThumbsUpComment should return null for non-existent comment', async () => {
+      const commentData = {
+        version: 2,
+        comments: []
+      };
+      const documentText = `# Test\n\n<!-- markco-comments\n${JSON.stringify(commentData)}\n-->`;
+      const mockDocument = createMockDocument(documentText);
+
+      const result = await commentService.toggleThumbsUpComment(mockDocument, 'non-existent');
+      
+      assert.strictEqual(result, null);
+    });
+  });
 });
 
 // Helper functions to create mock VS Code objects
