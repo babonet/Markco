@@ -13,6 +13,7 @@ tsconfig.json
 # Package files
 node_modules/**
 !node_modules/uuid/**
+!node_modules/@vscode/codicons/dist/**
 
 # Other
 *.vsix

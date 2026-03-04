@@ -159,15 +159,17 @@ export class CommentSidebarProvider implements vscode.WebviewViewProvider {
       vscode.Uri.joinPath(this._extensionUri, 'media', 'sidebar.css')
     );
 
-    // Use VS Code's built-in codicons via the webview toolkit
-    const codiconsUri = 'https://microsoft.github.io/vscode-codicons/dist/codicon.css';
+    // Load codicons locally from the bundled @vscode/codicons package
+    const codiconsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, 'node_modules', '@vscode', 'codicons', 'dist', 'codicon.css')
+    );
 
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} https://microsoft.github.io 'unsafe-inline'; font-src ${webview.cspSource} https://microsoft.github.io; script-src 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource}; script-src 'unsafe-inline';">
   <link href="${styleUri}" rel="stylesheet">
   <link href="${codiconsUri}" rel="stylesheet">
   <title>Comments</title>
