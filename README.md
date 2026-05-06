@@ -90,14 +90,14 @@ This keeps comments portable and version-control friendly.
 
 ## Claude Code Skill
 
-A [Claude Code](https://claude.ai/claude-code) skill is included in the `skills/` directory, giving AI agents the ability to manage markco comments programmatically — add, reply, resolve, edit, remove, and list comments.
+A [Claude Code](https://claude.ai/claude-code) skill is included in the `skills/markco/` directory, giving AI agents the ability to manage markco comments programmatically — add, reply, resolve, edit, remove, and list comments.
 
 ### Setup
 
-Copy the `skills/` directory into your project's `.claude/skills/markco/`:
+Copy the `skills/markco/` directory into your project's `.claude/skills/`:
 
 ```bash
-cp -r skills/ <your-project>/.claude/skills/markco/
+cp -r skills/markco/ <your-project>/.claude/skills/markco/
 ```
 
 ### How it works
@@ -115,7 +115,7 @@ The AI agent handles business logic (deciding what to add/edit/remove), while th
 
 ### Usage
 
-Invoke via `/markco` in Claude Code:
+Invoke directly via `/markco` or conversationally — the skill triggers when you mention comments, markco, or ask to annotate a markdown file:
 
 ```
 /markco list docs/my-file.md
@@ -123,9 +123,7 @@ Invoke via `/markco` in Claude Code:
 /markco resolve docs/my-file.md
 ```
 
-<!-- markco-comments
-{
-  "version": 2,
-  "comments": []
-}
--->
+Or just ask naturally:
+- "Add a comment on the Decision section in docs/my-file.md"
+- "What comments are on this file?"
+- "Resolve the comment about naming"
