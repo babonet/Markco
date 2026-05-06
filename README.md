@@ -90,14 +90,14 @@ This keeps comments portable and version-control friendly.
 
 ## Claude Code Skill
 
-A [Claude Code](https://claude.ai/claude-code) skill is included in the `markco/` directory, giving AI agents the ability to manage markco comments programmatically — add, reply, resolve, edit, remove, and list comments.
+A [Claude Code](https://claude.ai/claude-code) skill is included in the `skills/` directory, giving AI agents the ability to manage markco comments programmatically — add, reply, resolve, edit, remove, and list comments.
 
 ### Setup
 
-Copy the `markco/` directory into your project's `.claude/skills/`:
+Copy the `skills/` directory into your project's `.claude/skills/markco/`:
 
 ```bash
-cp -r markco/ <your-project>/.claude/skills/markco/
+cp -r skills/ <your-project>/.claude/skills/markco/
 ```
 
 ### How it works
