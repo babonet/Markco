@@ -127,3 +127,10 @@ Or just ask naturally:
 - "Add a comment on the Decision section in docs/my-file.md"
 - "What comments are on this file?"
 - "Resolve the comment about naming"
+
+<!-- markco-comments
+{
+  "version": 2,
+  "comments": []
+}
+-->
