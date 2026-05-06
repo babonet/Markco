@@ -88,6 +88,41 @@ Comments are stored directly in the Markdown file as a JSON block in an HTML com
 
 This keeps comments portable and version-control friendly.
 
+## Claude Code Skill
+
+A [Claude Code](https://claude.ai/claude-code) skill is included in the `skills/` directory, giving AI agents the ability to manage markco comments programmatically — add, reply, resolve, edit, remove, and list comments.
+
+### Setup
+
+Copy the `skills/` directory into your project's `.claude/skills/markco/`:
+
+```bash
+cp -r skills/ <your-project>/.claude/skills/markco/
+```
+
+### How it works
+
+The skill includes a zero-dependency Node.js CLI script (`scripts/markco.mjs`) that handles deterministic operations ported from the extension's `CommentService.ts`:
+
+| Command | Description |
+| ------- | ----------- |
+| `parse <file>` | Extract and deserialise the markco comment block |
+| `serialize <file>` | Write comments back (reads JSON from stdin) |
+| `find-anchor <file> --text "text"` | Find anchor positions (0-based line/char), excluding code fences |
+| `reconcile <file>` | Update anchor positions in-place, mark orphans |
+
+The AI agent handles business logic (deciding what to add/edit/remove), while the script handles the error-prone parts (position calculation, `-->` sanitisation, code-context detection).
+
+### Usage
+
+Invoke via `/markco` in Claude Code:
+
+```
+/markco list docs/my-file.md
+/markco add docs/my-file.md
+/markco resolve docs/my-file.md
+```
+
 <!-- markco-comments
 {
   "version": 2,
