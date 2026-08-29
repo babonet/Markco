@@ -20,7 +20,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:markdown"
+    "onLanguage:markdown",
+    "onLanguage:skill"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -74,14 +75,14 @@
     "menus": {
       "editor/context": [
         {
-          "when": "editorLangId == markdown && editorHasSelection",
+          "when": "(editorLangId == markdown || editorLangId == skill) && editorHasSelection",
           "command": "markco.addComment",
           "group": "markco"
         }
       ],
       "editor/title": [
         {
-          "when": "editorLangId == markdown",
+          "when": "editorLangId == markdown || editorLangId == skill",
           "command": "markco.addComment",
           "group": "navigation"
         }
@@ -92,7 +93,7 @@
         "command": "markco.addComment",
         "key": "ctrl+shift+m",
         "mac": "cmd+shift+m",
-        "when": "editorLangId == markdown"
+        "when": "editorLangId == markdown || editorLangId == skill"
       }
     ],
     "configuration": {

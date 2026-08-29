@@ -1,6 +1,9 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as Mocha from 'mocha';
+import { isMarkdownCompatibleLanguage } from '../../extension';
 
 const suite = Mocha.suite;
 const test = Mocha.test;
@@ -34,7 +37,7 @@ suite('Extension Test Suite', () => {
         language: 'markdown',
         content: '# Test Document\n\nSome text here.'
       });
-      
+
       assert.strictEqual(document.languageId, 'markdown');
       assert.ok(document.getText().includes('# Test Document'));
     });
@@ -43,6 +46,29 @@ suite('Extension Test Suite', () => {
       const document = await vscode.workspace.openTextDocument({
         language: 'markdown',
         content: '# Original'
+      });
+
+      suite('Language Compatibility', () => {
+        test('Should treat skill language as markdown-compatible', () => {
+          assert.strictEqual(isMarkdownCompatibleLanguage('markdown'), true);
+          assert.strictEqual(isMarkdownCompatibleLanguage('skill'), true);
+          assert.strictEqual(isMarkdownCompatibleLanguage('plaintext'), false);
+        });
+
+        test('Package contribution contexts should include skill language', () => {
+          const packageJsonPath = path.resolve(__dirname, '../../../package.json');
+          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+
+          assert.ok(packageJson.activationEvents.includes('onLanguage:skill'));
+
+          const editorContextWhen = packageJson.contributes.menus['editor/context'][0].when as string;
+          const editorTitleWhen = packageJson.contributes.menus['editor/title'][0].when as string;
+          const keybindingWhen = packageJson.contributes.keybindings[0].when as string;
+
+          assert.ok(editorContextWhen.includes('editorLangId == skill'));
+          assert.ok(editorTitleWhen.includes('editorLangId == skill'));
+          assert.ok(keybindingWhen.includes('editorLangId == skill'));
+        });
       });
       
       const editor = await vscode.window.showTextDocument(document);

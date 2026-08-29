@@ -8,6 +8,10 @@ let commentService: CommentService;
 let commentDecorator: CommentDecorator;
 let sidebarProvider: CommentSidebarProvider;
 
+export function isMarkdownCompatibleLanguage(languageId: string): boolean {
+  return languageId === 'markdown' || languageId === 'skill';
+}
+
 export function activate(context: vscode.ExtensionContext) {
   console.log('Markco extension is now active');
 
@@ -22,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
     (commentId: string) => {
       console.log('Markco: Navigate to comment:', commentId);
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         const comment = commentService.findComment(editor.document, commentId);
         console.log('Markco: Found comment:', comment);
         if (comment) {
@@ -36,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Delete callback
     async (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         await commentService.deleteComment(editor.document, commentId);
         refreshAll(editor);
       }
@@ -44,7 +48,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Edit callback - now receives content directly from sidebar
     async (commentId: string, content: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         await commentService.updateComment(editor.document, commentId, content);
         refreshAll(editor);
         vscode.window.showInformationMessage('Comment updated');
@@ -53,14 +57,14 @@ export function activate(context: vscode.ExtensionContext) {
     // Ready callback - sidebar is ready to receive data
     () => {
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         refreshAll(editor);
       }
     },
     // Add reply callback - receives content directly from sidebar
     async (commentId: string, content: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -73,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Edit reply callback - receives content directly from sidebar
     async (commentId: string, replyId: string, content: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -84,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Delete reply callback
     async (commentId: string, replyId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -97,7 +101,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Resolve comment callback
     async (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -111,7 +115,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Add comment callback - triggered from sidebar button, shows form in sidebar
     () => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         vscode.window.showErrorMessage('Please open a Markdown file to add comments');
         return;
       }
@@ -126,7 +130,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Submit new comment callback - receives content from sidebar form
     async (content: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         vscode.window.showErrorMessage('Please open a Markdown file to add comments');
         return;
       }
@@ -149,7 +153,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Re-anchor callback - re-anchors an orphaned comment to current selection
     async (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         vscode.window.showErrorMessage('Please open a Markdown file');
         return;
       }
@@ -171,7 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Thumbs up comment callback - toggles thumbs up on a comment
     async (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -181,7 +185,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Thumbs up reply callback - toggles thumbs up on a reply
     async (commentId: string, replyId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
         return;
       }
 
@@ -220,7 +224,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('markco.navigateToComment', (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         const comment = commentService.findComment(editor.document, commentId);
         if (comment) {
           commentDecorator.navigateToComment(editor, comment);
@@ -234,7 +238,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Listen for active editor changes
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(editor => {
-      if (editor && editor.document.languageId === 'markdown') {
+      if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
         refreshAll(editor);
       }
     })
@@ -244,7 +248,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.onDidChangeTextDocument(event => {
       const editor = vscode.window.activeTextEditor;
-      if (editor && editor.document === event.document && event.document.languageId === 'markdown') {
+      if (editor && editor.document === event.document && isMarkdownCompatibleLanguage(event.document.languageId)) {
         // Debounce decoration updates
         refreshDecorations(editor);
       }
@@ -254,7 +258,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Listen for document saves to reconcile anchors
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(async document => {
-      if (document.languageId === 'markdown') {
+      if (isMarkdownCompatibleLanguage(document.languageId)) {
         await commentService.reconcileAnchors(document);
         const editor = vscode.window.activeTextEditor;
         if (editor && editor.document === document) {
@@ -266,7 +270,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Initial refresh if markdown file is already open
   const editor = vscode.window.activeTextEditor;
-  if (editor && editor.document.languageId === 'markdown') {
+  if (editor && isMarkdownCompatibleLanguage(editor.document.languageId)) {
     refreshAll(editor);
   }
 
@@ -327,7 +331,7 @@ function expandSelectionAtCursor(document: vscode.TextDocument, position: vscode
 
 async function addCommentCommand() {
   const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.languageId !== 'markdown') {
+  if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
     vscode.window.showErrorMessage('Please open a Markdown file to add comments');
     return;
   }
@@ -348,7 +352,7 @@ async function addCommentCommand() {
 
 async function deleteCommentCommand(commentId?: string) {
   const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.languageId !== 'markdown') {
+  if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
     return;
   }
 
@@ -377,7 +381,7 @@ async function deleteCommentCommand(commentId?: string) {
 
 async function editCommentCommand(commentId?: string) {
   const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.languageId !== 'markdown') {
+  if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
     return;
   }
 
