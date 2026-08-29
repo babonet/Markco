@@ -116,7 +116,7 @@ export function activate(context: vscode.ExtensionContext) {
     () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
-        vscode.window.showErrorMessage('Please open a Markdown file to add comments');
+        vscode.window.showErrorMessage('Please open a Markdown or SKILL file to add comments');
         return;
       }
       
@@ -131,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
     async (content: string) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
-        vscode.window.showErrorMessage('Please open a Markdown file to add comments');
+        vscode.window.showErrorMessage('Please open a Markdown or SKILL file to add comments');
         return;
       }
 
@@ -154,7 +154,7 @@ export function activate(context: vscode.ExtensionContext) {
     async (commentId: string) => {
       const editor = vscode.window.activeTextEditor;
       if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
-        vscode.window.showErrorMessage('Please open a Markdown file');
+        vscode.window.showErrorMessage('Please open a Markdown or SKILL file');
         return;
       }
 
@@ -332,7 +332,7 @@ function expandSelectionAtCursor(document: vscode.TextDocument, position: vscode
 async function addCommentCommand() {
   const editor = vscode.window.activeTextEditor;
   if (!editor || !isMarkdownCompatibleLanguage(editor.document.languageId)) {
-    vscode.window.showErrorMessage('Please open a Markdown file to add comments');
+    vscode.window.showErrorMessage('Please open a Markdown or SKILL file to add comments');
     return;
   }
 

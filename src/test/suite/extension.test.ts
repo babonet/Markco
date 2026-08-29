@@ -48,36 +48,63 @@ suite('Extension Test Suite', () => {
         content: '# Original'
       });
 
-      suite('Language Compatibility', () => {
-        test('Should treat skill language as markdown-compatible', () => {
-          assert.strictEqual(isMarkdownCompatibleLanguage('markdown'), true);
-          assert.strictEqual(isMarkdownCompatibleLanguage('skill'), true);
-          assert.strictEqual(isMarkdownCompatibleLanguage('plaintext'), false);
-        });
-
-        test('Package contribution contexts should include skill language', () => {
-          const packageJsonPath = path.resolve(__dirname, '../../../package.json');
-          const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
-
-          assert.ok(packageJson.activationEvents.includes('onLanguage:skill'));
-
-          const editorContextWhen = packageJson.contributes.menus['editor/context'][0].when as string;
-          const editorTitleWhen = packageJson.contributes.menus['editor/title'][0].when as string;
-          const keybindingWhen = packageJson.contributes.keybindings[0].when as string;
-
-          assert.ok(editorContextWhen.includes('editorLangId == skill'));
-          assert.ok(editorTitleWhen.includes('editorLangId == skill'));
-          assert.ok(keybindingWhen.includes('editorLangId == skill'));
-        });
-      });
-      
       const editor = await vscode.window.showTextDocument(document);
       
       await editor.edit(editBuilder => {
         editBuilder.insert(new vscode.Position(0, 10), ' Modified');
       });
-      
+
       assert.ok(document.getText().includes('Modified'));
+    });
+  });
+
+  suite('Language Compatibility', () => {
+    test('Should treat skill language as markdown-compatible', () => {
+      assert.strictEqual(isMarkdownCompatibleLanguage('markdown'), true);
+      assert.strictEqual(isMarkdownCompatibleLanguage('skill'), true);
+      assert.strictEqual(isMarkdownCompatibleLanguage('plaintext'), false);
+    });
+
+    test('Package contribution contexts should include skill language', () => {
+      const extension = vscode.extensions.getExtension('OrenMaoz.markco');
+      const extensionPath = extension?.extensionPath ?? path.resolve(__dirname, '../../..');
+      const packageJsonPath = path.join(extensionPath, 'package.json');
+      assert.ok(fs.existsSync(packageJsonPath), `package.json not found at ${packageJsonPath}`);
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+      assert.ok(packageJson);
+
+      assert.ok(packageJson.activationEvents.includes('onLanguage:skill'));
+
+      const editorContextMenuItem = packageJson.contributes.menus['editor/context'].find(
+        (item: { command: string }) => item.command === 'markco.addComment'
+      );
+      const editorTitleMenuItem = packageJson.contributes.menus['editor/title'].find(
+        (item: { command: string }) => item.command === 'markco.addComment'
+      );
+      const keybindingItem = packageJson.contributes.keybindings.find(
+        (item: { command: string }) => item.command === 'markco.addComment'
+      );
+
+      assert.ok(editorContextMenuItem);
+      assert.ok(editorTitleMenuItem);
+      assert.ok(keybindingItem);
+
+      const editorContextWhen = editorContextMenuItem.when as string;
+      const editorTitleWhen = editorTitleMenuItem.when as string;
+      const keybindingWhen = keybindingItem.when as string;
+
+      assert.strictEqual(
+        editorContextWhen,
+        '(editorLangId == markdown || editorLangId == skill) && editorHasSelection'
+      );
+      assert.strictEqual(
+        editorTitleWhen,
+        'editorLangId == markdown || editorLangId == skill'
+      );
+      assert.strictEqual(
+        keybindingWhen,
+        'editorLangId == markdown || editorLangId == skill'
+      );
     });
   });
 
