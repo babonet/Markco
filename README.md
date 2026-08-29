@@ -1,6 +1,6 @@
 # Markco - Markdown Comments
 
-Interactive commenting system for Markdown files in VS Code.
+Interactive commenting system for Markdown files in VS Code, including `SKILL.md` files opened in VS Code's native `skill` language mode.
 
 ## Screenshots
 
@@ -30,7 +30,7 @@ Interactive commenting system for Markdown files in VS Code.
 
 ## Usage
 
-1. Open a Markdown file
+1. Open a Markdown file (or a `SKILL.md` file in `skill` mode)
 2. Select text to comment on, or just place your cursor (the extension will auto-select the word at cursor, or the entire line if cursor is at line start/end)
 3. Press `Ctrl+Shift+M` (or `Cmd+Shift+M` on Mac) or click the **+** button in the sidebar
 4. Type your comment in the sidebar form and click "Add Comment"
